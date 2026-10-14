@@ -19,7 +19,7 @@ is updated at the end of every phase.
 | Phase | Window (IST, 14–15 Oct 2026) | Status |
 |---|---|---|
 | 1. Foundation: locks, harness, wake-up benchmark, validation | 22:00 – 01:00 | **Done** (reviewed, approved 22:25) |
-| 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | **In progress**: `prereg-v1` tagged 22:28:12 (git tagger date); experiments running |
+| 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | **Done** 23:59, awaiting review. H1 supported, H2 partially supported |
 | 3. Adaptive locks + throttling (RQ3, H4) | 03:30 – 06:30 | Not started |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started |
 
@@ -335,7 +335,7 @@ Full snapshot: `results/manifests/` (`make manifest`).
 
 ---
 
-## 11. Phase 2: pre-registration and static experiments
+## 11. Phase 2: pre-registration and static experiments (done)
 
 ### 11.1 Pre-registration (`prereg-v1`)
 
@@ -370,10 +370,10 @@ pilot data. Validation pilot data was seen before the tag (README §10.5).
 | ID | What | Runs | Status |
 |---|---|---|---|
 | E1 | Wake-up latency: 3 placements × 4 idle depths, plus 2 loaded conditions | 42 | **done** 22:48, 0 invalid |
-| E2 | Steady sweep: 8 locks × hold {100 ns, 1 µs, 10 µs, 50 µs} × T {4, 8, 16, 32} | 640 | running (started 22:50) |
-| E3 | Unpinned subset | 96 | after E2 |
-| E4 | Phase-changing S1 (hold shift) and S2 (thread shift), T {8, 16} | 320 | after E3 |
-| E5 | Randomized R1 (bimodal hold, exponential think), T {8, 16} | 160 | after E4 |
+| E2 | Steady sweep: 8 locks × hold {100 ns, 1 µs, 10 µs, 50 µs} × T {4, 8, 16, 32} | 640 | **done** 23:17, 0 invalid |
+| E3 | Unpinned subset | 96 | **done** 23:21, 0 invalid |
+| E4 | Phase-changing S1 (hold shift) and S2 (thread shift), T {8, 16} | 320 | **done** 23:47, 0 invalid |
+| E5 | Randomized R1 (bimodal hold, exponential think), T {8, 16} | 160 | **done** 23:56, 0 invalid |
 
 The 8 locks are `park`, `stp:b1..b4`, `spin`, `pthread` and `pthread-adaptive`.
 The budgets b1..b4 = {0.5, 1, 2, 8} × the median wake latency of E1
@@ -456,3 +456,71 @@ E1 observations (descriptive, not tested):
   1 ms idle, because the CPU never enters idle), but p99.9 is about 0.8 ms.
 - **Missed wakes:** 4 of 100,200 in one condition (other-core, 20 µs idle),
   0 elsewhere.
+
+**H2: PARTIALLY SUPPORTED** (confirmatory, 2 of 4 cases; `docs/results/e4.md`).
+
+| Case | A\* (best before) | Throughput loss after shift | p99 ratio | Result |
+|---|---|---|---|---|
+| S1 T=8, 100 ns → 20 µs | stp:2350 | 3.2% [1.5, 4.5] | 1.00 | not met |
+| S1 T=8, 20 µs → 100 ns | spin | 1.8% [0.6, 2.9] | 1.64 [1.62, 1.68] | not met |
+| S1 T=16, 100 ns → 20 µs | spin | **43.1%** [42.4, 44.1] | 86,517 (artefact, see below) | **met** |
+| S1 T=16, 20 µs → 100 ns | stp:4750 | 16.1% [15.4, 16.8] | **2.59** [2.57, 2.63] | **met** |
+
+- **Reading:** at T = 8 (one thread per physical core), every lock that spins
+  at all performs about the same in both phases, so a static budget loses
+  nothing when the hold time shifts. At T = 16 (all SMT threads busy), spin is
+  best for short holds but loses 43% once holds become long. The lock that is
+  best during long holds is 16% slower, with 2.6× the p99, once holds become
+  short again.
+- **Tie-break check:** in the last case, all futex locks were tied in the long
+  phase. The case is met whichever of them the tie-break picks: `park` on
+  loss (37%), each `stp` lock on p99 ratio (2.3–2.7). These are point
+  estimates; no intervals were computed for the alternatives.
+
+**Methodology finding: barging makes acquisition-weighted percentiles
+misleading in long-hold phases.**
+- With 20 µs holds, every futex-based lock (ours and glibc's) turns unfair:
+  Jain's index 0.33–0.54, with the top thread taking 20–56% of acquisitions.
+- The releasing thread re-acquires through the fast path before parked
+  waiters wake. Their wake-up costs 3–30 µs (E1), longer than the 1 µs think
+  time.
+- Most acquisitions are therefore uncontended re-acquisitions, so p99 is about
+  30 ns while the parked threads starve. Spin stays fair (Jain 0.98–0.99).
+- Effect on H2: the p99 criterion understates the harm in the T=8 long-hold
+  case and inflates the ratio in the T=16 case. The T=16 case is met on the
+  43% throughput loss alone.
+- The pre-registered verdict is kept unchanged. A per-thread or
+  waiting-time-weighted latency metric is a candidate *exploratory* analysis
+  for Phase 4.
+
+**E2–E5 observations** (exploratory; tables in `docs/results/e2.md`, `e3.md`, `e5.md`):
+
+- **Short holds (100 ns), T ≤ 8:** any lock that spins reaches 3.1–4.6 M ops/s.
+  `park` and `pthread` reach 2.4–2.9 M ops/s, and their p99 is about 4× worse
+  at T=8 and about 20× worse at T=4.
+- **Long holds (10 µs), T = 4–32:** `stp:37850` (budget > hold) is fastest,
+  about 15% above the other futex locks (0.091–0.095 vs 0.078–0.084 M ops/s),
+  but uses about 2.2 CPU cores instead of 1.2. Spin uses every core it has
+  (4 at T=4, 15.7 at T=16) and collapses once T > 8 (0.050 M ops/s at T=16,
+  0.025 at T=32).
+- **Oversubscription (T = 32 on 16 CPUs):** spin is the slowest lock at every
+  hold time: 30% below the best at 100 ns, and 3–4× below at ≥ 1 µs (e.g.
+  0.23 vs 0.67 M ops/s for `stp:9450` at 1 µs). The best lock depends on hold
+  time: `stp:2350` at 100 ns, `stp:9450` at 1 µs.
+- **No single lock wins everywhere.** Over the 16 hold × T cells, the
+  highest-throughput lock is spin in 3, `stp:2350`, `stp:4750` and `stp:9450`
+  in 6 between them, `stp:37850` in 4, and park or pthread-adaptive in the
+  50 µs cells, where every futex lock is within 2%.
+- **Unpinned (E3, vs pinned):** results are mixed.
+  - At 1 µs holds and T=8, `park` and `pthread` lose about 25% throughput and
+    get 1.8–2.6× worse p99.
+  - At T=32 they gain about 40% throughput with much lower p99, because the
+    scheduler balances 32 threads better than 2 pinned per CPU.
+  - `stp:9450` at 10 µs, T=32 has 128× worse p99 unpinned, from a pinned p99
+    of about 0.1 µs that barging produces.
+- **Randomized R1:** spin has the highest throughput at T=8 (0.40 vs 0.32–0.38
+  M ops/s) but the lowest at T=16 (0.22). `stp:37850` is highest at T=16
+  (0.32). The other futex locks are within about 3% of each other.
+- **Run-to-run stability:** median throughput CV 1.0% (max 4.6%) across E2
+  cells. Drift: the work loop ran 3.0% slower after a run on average (worst
+  −13.7%), with boost on.

@@ -2,8 +2,8 @@
 
 Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Times are IST.
 
-**Current phase:** Phase 2 (pre-registration done; E1 running)
-**Results status:** PENDING. No data collected.
+**Current phase:** Phase 2 complete, awaiting review before Phase 3
+**Results status:** H1 SUPPORTED, H2 PARTIALLY SUPPORTED (Phase 2). H3, H4 pending (Phase 3).
 
 ---
 
@@ -12,7 +12,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | Phase | Window | Status | Started | Finished |
 |---|---|---|---|---|
 | 1. Foundation | 22:00 – 01:00 | **Done** (awaiting review) | 21:55 | 22:15 |
-| 2. Pre-registration + static experiments | 01:00 – 03:30 | **In progress** | 22:25 | |
+| 2. Pre-registration + static experiments | 01:00 – 03:30 | **Done** (awaiting review) | 22:25 | 23:59 |
 | 3. Adaptive + throttling | 03:30 – 06:30 | Not started | | |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started | | |
 
@@ -51,11 +51,11 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 - [x] Commit + tag `prereg-v1` (before any data)
 - [x] RQ1 wake-up microbenchmark data
 - [x] Final static budget set chosen by the pre-declared rule
-- [ ] Steady sweep (static locks)
-- [ ] Unpinned subset
-- [ ] Phase-changing workload data
-- [ ] Randomized workload data
-- [ ] Data committed
+- [x] Steady sweep (static locks)
+- [x] Unpinned subset
+- [x] Phase-changing workload data
+- [x] Randomized workload data
+- [x] Data committed
 
 ## Phase 3: Adaptive + throttling
 
@@ -122,3 +122,10 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 22:49 | Budget rule applied: reference median 4728.9 ns → stp:2350/4750/9450/37850 (config/budgets.json) |
 | 22:49 | E1 analysed: **H1 SUPPORTED** (ratio 11.27, CI 11.18–11.37; worst-case run ratio 9.59) |
 | 22:50 | Committed a5ccb55 (E1 data, budgets, analysis, C1); E2→E5 chain started |
+| 22:52 | Committed a4e233c (analysis-only: E3 pinned-vs-unpinned table) so the runner's clean-code check passes for E3–E5 |
+| 23:17 | E2 done: 640 runs, 0 invalid, 26.8 min |
+| 23:21 | E3 done: 96 runs, 0 invalid, 4.0 min |
+| 23:47 | E4 done: 320 runs, 0 invalid, 26.7 min |
+| 23:56 | E5 done: 160 runs, 0 invalid, 9.4 min |
+| 23:58 | Analyses run: **H2 PARTIALLY SUPPORTED** (2/4 cases). Barging artefact in long-hold p99 identified (Jain 0.33–0.54 for futex locks); verdict kept as pre-registered |
+| 23:59 | README / RESEARCH_PHASE §3.4 / PROGRESS updated (claims re-checked against data; 4 wording fixes); Phase 2 committed; awaiting review |

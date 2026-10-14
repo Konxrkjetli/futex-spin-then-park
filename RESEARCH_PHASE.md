@@ -86,8 +86,8 @@ go-ahead, 2026-10-14 22:25 IST.
 
 | Hypothesis | Threshold | Observed result | Verdict |
 |---|---|---|---|
-| H1 | slowest/fastest median ≥ 2× | PENDING | PENDING |
-| H2 | loss ≥ 25% or p99 ratio ≥ 2×, in each of 4 cases | PENDING | PENDING |
+| H1 | slowest/fastest median ≥ 2× | other-core/10 ms idle 30.72 µs ÷ other-core/20 µs idle 2.73 µs = **11.27** (95% CI 11.18–11.37; worst-case run ratio 9.59) | **SUPPORTED** |
+| H2 | loss ≥ 25% or p99 ratio ≥ 2×, in each of 4 cases | S1 T=8: 0→1 not met (loss 3.2%, p99 ratio 1.00), 1→2 not met (1.8%, 1.64). S1 T=16: 0→1 met (loss 43.1%), 1→2 met (p99 ratio 2.59) | **PARTIALLY SUPPORTED** (2/4) |
 | H3 | throughput ≥ 0.85× and p99.9 ≤ 1.2× of best static, on each of 6 workloads (per policy) | PENDING | PENDING |
 | H4 | p99.9 ≥ 2× lower than spin and ≤ 1.10× best static, in each of 4 cases | PENDING | PENDING |
 

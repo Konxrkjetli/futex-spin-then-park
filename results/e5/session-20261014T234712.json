@@ -1,0 +1,533 @@
+{
+ "experiment": "e5",
+ "session": "20261014T234712",
+ "seed": 20261014,
+ "commit": "a4e233c2956539a19990e56c0827a2195d972c62",
+ "dirty": false,
+ "calib": {
+  "tsc_hz": 3194002395,
+  "iters_per_ns": 4.72395
+ },
+ "manifest_start": {
+  "collected_at": "2026-10-14T23:47:12+0530",
+  "machine_id": "45dc2ca9a840",
+  "cpu": {
+   "model": "AMD Ryzen 7 6800H with Radeon Graphics",
+   "cpus": "16",
+   "threads_per_core": "2",
+   "cores_per_socket": "8",
+   "sockets": "1",
+   "numa_nodes": "1",
+   "l3": "16 MiB (1 instance)",
+   "tsc_flags": [
+    "constant_tsc",
+    "nonstop_tsc",
+    "rdtscp"
+   ]
+  },
+  "topology": [
+   {
+    "cpu": 0,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 1,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 2,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 3,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 4,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 5,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 6,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 7,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 8,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 9,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 10,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 11,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 12,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 13,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 14,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 15,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   }
+  ],
+  "kernel": "7.2.5-3-omarchy",
+  "kernel_cmdline_relevant": [],
+  "glibc": "ldd (GNU libc) 2.44",
+  "compiler": "gcc (GCC) 16.2.1 20260810",
+  "build_flags": "CC=gcc CFLAGS=-std=gnu11 -O2 -g -Wall -Wextra -pthread -D_GNU_SOURCE LDLIBS=-lm",
+  "python": "3.14.7",
+  "cpufreq": {
+   "driver": [
+    "amd-pstate-epp"
+   ],
+   "governor": [
+    "performance"
+   ],
+   "epp": [
+    "performance"
+   ],
+   "boost": "1"
+  },
+  "smt_control": "on",
+  "clocksource": "tsc",
+  "cpuidle_states": [
+   {
+    "name": "POLL",
+    "latency_us": "0",
+    "disabled": "0"
+   },
+   {
+    "name": "C1",
+    "latency_us": "1",
+    "disabled": "0"
+   },
+   {
+    "name": "C2",
+    "latency_us": "18",
+    "disabled": "0"
+   },
+   {
+    "name": "C3",
+    "latency_us": "350",
+    "disabled": "0"
+   }
+  ],
+  "cgroup": {
+   "fs": "cgroup2fs",
+   "controllers": "cpuset cpu io memory hugetlb pids rdma misc dmem",
+   "user_delegated": "cpu memory pids"
+  },
+  "power": {
+   "ac_online": true,
+   "battery_status": "Full",
+   "battery_capacity": "100"
+  },
+  "perf_event_paranoid": "2",
+  "glibc_tunables_env": null,
+  "loadavg": "5.00 4.34 5.07 2/2028 122286",
+  "git": {
+   "commit": "a4e233c2956539a19990e56c0827a2195d972c62",
+   "dirty": true
+  },
+  "calib": {
+   "tsc_hz": 3194002461,
+   "iters_per_ns": 4.6785
+  }
+ },
+ "order": [
+  "e5_R1_stp-9450_t16_r7",
+  "e5_R1_pthread_t16_r2",
+  "e5_R1_park_t8_r8",
+  "e5_R1_park_t16_r0",
+  "e5_R1_pthread_t8_r0",
+  "e5_R1_stp-9450_t8_r8",
+  "e5_R1_stp-4750_t16_r7",
+  "e5_R1_stp-37850_t16_r9",
+  "e5_R1_park_t8_r3",
+  "e5_R1_pthread_t8_r4",
+  "e5_R1_stp-9450_t16_r4",
+  "e5_R1_park_t8_r5",
+  "e5_R1_stp-4750_t16_r8",
+  "e5_R1_stp-4750_t8_r3",
+  "e5_R1_stp-9450_t16_r8",
+  "e5_R1_stp-37850_t16_r8",
+  "e5_R1_pthread_t16_r7",
+  "e5_R1_stp-2350_t8_r4",
+  "e5_R1_stp-2350_t8_r0",
+  "e5_R1_spin_t16_r6",
+  "e5_R1_stp-9450_t8_r3",
+  "e5_R1_stp-2350_t8_r2",
+  "e5_R1_stp-4750_t8_r9",
+  "e5_R1_stp-2350_t16_r1",
+  "e5_R1_stp-4750_t16_r4",
+  "e5_R1_pthread-adaptive_t8_r3",
+  "e5_R1_stp-37850_t8_r9",
+  "e5_R1_stp-37850_t8_r6",
+  "e5_R1_stp-9450_t8_r4",
+  "e5_R1_pthread-adaptive_t16_r8",
+  "e5_R1_stp-2350_t8_r5",
+  "e5_R1_park_t8_r4",
+  "e5_R1_stp-9450_t8_r5",
+  "e5_R1_pthread_t16_r5",
+  "e5_R1_stp-4750_t16_r6",
+  "e5_R1_pthread_t16_r1",
+  "e5_R1_pthread_t16_r3",
+  "e5_R1_stp-4750_t8_r1",
+  "e5_R1_pthread-adaptive_t16_r0",
+  "e5_R1_pthread-adaptive_t8_r1",
+  "e5_R1_stp-2350_t16_r9",
+  "e5_R1_stp-4750_t8_r2",
+  "e5_R1_stp-2350_t16_r0",
+  "e5_R1_stp-37850_t8_r2",
+  "e5_R1_stp-37850_t16_r5",
+  "e5_R1_stp-9450_t16_r2",
+  "e5_R1_stp-37850_t8_r7",
+  "e5_R1_stp-9450_t16_r5",
+  "e5_R1_stp-4750_t16_r3",
+  "e5_R1_stp-4750_t16_r9",
+  "e5_R1_pthread-adaptive_t8_r8",
+  "e5_R1_stp-4750_t16_r2",
+  "e5_R1_spin_t16_r9",
+  "e5_R1_park_t8_r9",
+  "e5_R1_stp-2350_t16_r2",
+  "e5_R1_spin_t16_r2",
+  "e5_R1_spin_t16_r5",
+  "e5_R1_pthread-adaptive_t8_r9",
+  "e5_R1_stp-2350_t8_r3",
+  "e5_R1_park_t16_r3",
+  "e5_R1_pthread-adaptive_t16_r3",
+  "e5_R1_pthread_t8_r2",
+  "e5_R1_spin_t16_r7",
+  "e5_R1_stp-37850_t16_r4",
+  "e5_R1_pthread-adaptive_t16_r4",
+  "e5_R1_pthread-adaptive_t8_r6",
+  "e5_R1_pthread-adaptive_t8_r5",
+  "e5_R1_pthread-adaptive_t16_r5",
+  "e5_R1_stp-2350_t16_r6",
+  "e5_R1_spin_t8_r0",
+  "e5_R1_stp-2350_t8_r9",
+  "e5_R1_stp-4750_t8_r0",
+  "e5_R1_stp-9450_t16_r0",
+  "e5_R1_stp-9450_t16_r6",
+  "e5_R1_stp-2350_t8_r1",
+  "e5_R1_stp-37850_t16_r6",
+  "e5_R1_stp-2350_t8_r7",
+  "e5_R1_park_t8_r2",
+  "e5_R1_stp-9450_t8_r1",
+  "e5_R1_stp-9450_t16_r3",
+  "e5_R1_park_t16_r4",
+  "e5_R1_stp-37850_t8_r3",
+  "e5_R1_stp-2350_t16_r3",
+  "e5_R1_pthread-adaptive_t16_r2",
+  "e5_R1_stp-4750_t8_r5",
+  "e5_R1_pthread_t8_r6",
+  "e5_R1_stp-9450_t8_r2",
+  "e5_R1_pthread-adaptive_t8_r2",
+  "e5_R1_spin_t8_r1",
+  "e5_R1_pthread-adaptive_t8_r4",
+  "e5_R1_spin_t8_r5",
+  "e5_R1_stp-37850_t16_r2",
+  "e5_R1_park_t8_r0",
+  "e5_R1_stp-9450_t16_r1",
+  "e5_R1_stp-9450_t8_r6",
+  "e5_R1_stp-2350_t16_r7",
+  "e5_R1_pthread_t8_r5",
+  "e5_R1_stp-2350_t8_r6",
+  "e5_R1_spin_t8_r2",
+  "e5_R1_park_t16_r7",
+  "e5_R1_stp-37850_t8_r8",
+  "e5_R1_pthread_t8_r1",
+  "e5_R1_park_t8_r7",
+  "e5_R1_stp-4750_t8_r6",
+  "e5_R1_stp-2350_t16_r4",
+  "e5_R1_spin_t8_r4",
+  "e5_R1_pthread_t8_r7",
+  "e5_R1_pthread-adaptive_t16_r6",
+  "e5_R1_spin_t8_r7",
+  "e5_R1_pthread_t16_r6",
+  "e5_R1_spin_t8_r6",
+  "e5_R1_park_t16_r8",
+  "e5_R1_park_t16_r6",
+  "e5_R1_park_t16_r1",
+  "e5_R1_stp-4750_t8_r8",
+  "e5_R1_pthread_t8_r9",
+  "e5_R1_pthread-adaptive_t8_r7",
+  "e5_R1_pthread-adaptive_t8_r0",
+  "e5_R1_spin_t16_r8",
+  "e5_R1_stp-4750_t16_r0",
+  "e5_R1_stp-2350_t16_r5",
+  "e5_R1_stp-4750_t8_r7",
+  "e5_R1_park_t8_r6",
+  "e5_R1_stp-37850_t16_r3",
+  "e5_R1_spin_t8_r9",
+  "e5_R1_park_t8_r1",
+  "e5_R1_park_t16_r2",
+  "e5_R1_stp-37850_t16_r7",
+  "e5_R1_stp-2350_t8_r8",
+  "e5_R1_stp-4750_t16_r5",
+  "e5_R1_stp-37850_t8_r5",
+  "e5_R1_park_t16_r9",
+  "e5_R1_stp-4750_t16_r1",
+  "e5_R1_spin_t8_r8",
+  "e5_R1_stp-9450_t8_r7",
+  "e5_R1_pthread_t16_r8",
+  "e5_R1_spin_t8_r3",
+  "e5_R1_pthread_t8_r8",
+  "e5_R1_stp-37850_t8_r0",
+  "e5_R1_spin_t16_r4",
+  "e5_R1_park_t16_r5",
+  "e5_R1_stp-9450_t8_r0",
+  "e5_R1_stp-9450_t8_r9",
+  "e5_R1_spin_t16_r0",
+  "e5_R1_spin_t16_r3",
+  "e5_R1_stp-9450_t16_r9",
+  "e5_R1_spin_t16_r1",
+  "e5_R1_pthread-adaptive_t16_r9",
+  "e5_R1_pthread-adaptive_t16_r7",
+  "e5_R1_stp-37850_t16_r0",
+  "e5_R1_pthread_t16_r4",
+  "e5_R1_stp-37850_t8_r1",
+  "e5_R1_stp-37850_t16_r1",
+  "e5_R1_stp-37850_t8_r4",
+  "e5_R1_pthread_t16_r0",
+  "e5_R1_pthread-adaptive_t16_r1",
+  "e5_R1_pthread_t8_r3",
+  "e5_R1_stp-2350_t16_r8",
+  "e5_R1_stp-4750_t8_r4",
+  "e5_R1_pthread_t16_r9"
+ ],
+ "manifest_end": {
+  "collected_at": "2026-10-14T23:56:34+0530",
+  "machine_id": "45dc2ca9a840",
+  "cpu": {
+   "model": "AMD Ryzen 7 6800H with Radeon Graphics",
+   "cpus": "16",
+   "threads_per_core": "2",
+   "cores_per_socket": "8",
+   "sockets": "1",
+   "numa_nodes": "1",
+   "l3": "16 MiB (1 instance)",
+   "tsc_flags": [
+    "constant_tsc",
+    "nonstop_tsc",
+    "rdtscp"
+   ]
+  },
+  "topology": [
+   {
+    "cpu": 0,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 1,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 2,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 3,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 4,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 5,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 6,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 7,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 8,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 9,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 10,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 11,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 12,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 13,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 14,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 15,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   }
+  ],
+  "kernel": "7.2.5-3-omarchy",
+  "kernel_cmdline_relevant": [],
+  "glibc": "ldd (GNU libc) 2.44",
+  "compiler": "gcc (GCC) 16.2.1 20260810",
+  "build_flags": "CC=gcc CFLAGS=-std=gnu11 -O2 -g -Wall -Wextra -pthread -D_GNU_SOURCE LDLIBS=-lm",
+  "python": "3.14.7",
+  "cpufreq": {
+   "driver": [
+    "amd-pstate-epp"
+   ],
+   "governor": [
+    "performance"
+   ],
+   "epp": [
+    "performance"
+   ],
+   "boost": "1"
+  },
+  "smt_control": "on",
+  "clocksource": "tsc",
+  "cpuidle_states": [
+   {
+    "name": "POLL",
+    "latency_us": "0",
+    "disabled": "0"
+   },
+   {
+    "name": "C1",
+    "latency_us": "1",
+    "disabled": "0"
+   },
+   {
+    "name": "C2",
+    "latency_us": "18",
+    "disabled": "0"
+   },
+   {
+    "name": "C3",
+    "latency_us": "350",
+    "disabled": "0"
+   }
+  ],
+  "cgroup": {
+   "fs": "cgroup2fs",
+   "controllers": "cpuset cpu io memory hugetlb pids rdma misc dmem",
+   "user_delegated": "cpu memory pids"
+  },
+  "power": {
+   "ac_online": true,
+   "battery_status": "Full",
+   "battery_capacity": "100"
+  },
+  "perf_event_paranoid": "2",
+  "glibc_tunables_env": null,
+  "loadavg": "3.60 3.84 4.40 1/2032 127952",
+  "git": {
+   "commit": "a4e233c2956539a19990e56c0827a2195d972c62",
+   "dirty": true
+  },
+  "calib": {
+   "tsc_hz": 3194002392,
+   "iters_per_ns": 4.72639
+  }
+ },
+ "invalid_runs": 0,
+ "elapsed_s": 561.8
+}
