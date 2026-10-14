@@ -1,0 +1,464 @@
+{
+ "conditions": {
+  "other-core_idle10000us": {
+   "placement": "other-core",
+   "idle_us": 10000,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 21000,
+   "missed": 0,
+   "median_ns": 30717.6,
+   "median_ci": [
+    30467.1,
+    30978.1
+   ],
+   "run_medians": [
+    26319.3,
+    30707.5,
+    35035.7
+   ],
+   "p90": 59261.1,
+   "p99": 696705.7,
+   "p999": 1600459.4,
+   "max": 4076519.6,
+   "p99_over_p50": 22.68099395786129,
+   "waker_syscall_p50": 2985.6,
+   "blocked_p50": 10045115.1,
+   "idle_share": {
+    "POLL": 0.0012762645914396887,
+    "C1": 0.12934741523068372,
+    "C2": 0.45447026125625345,
+    "C3": 0.41490605892162313
+   }
+  },
+  "other-core_idle1000us": {
+   "placement": "other-core",
+   "idle_us": 1000,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 5700.7,
+   "median_ci": [
+    5700.7,
+    5700.7
+   ],
+   "run_medians": [
+    5710.7,
+    5700.7,
+    5700.7
+   ],
+   "p90": 7313.7,
+   "p99": 87734.4,
+   "p999": 1253919.9,
+   "max": 2612485.9,
+   "p99_over_p50": 15.390109986492886,
+   "waker_syscall_p50": 931.7,
+   "blocked_p50": 1009501.9,
+   "idle_share": {
+    "POLL": 0.0017898793225839165,
+    "C1": 0.10351891288915932,
+    "C2": 0.41508974749011257,
+    "C3": 0.4796014602981442
+   }
+  },
+  "other-core_idle1000us_load": {
+   "placement": "other-core",
+   "idle_us": 1000,
+   "load": true,
+   "confirmatory": false,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 3666.9,
+   "median_ci": [
+    3666.9,
+    3676.9
+   ],
+   "run_medians": [
+    3747.0,
+    3526.6,
+    3767.1
+   ],
+   "p90": 4628.7,
+   "p99": 16050.1,
+   "p999": 817151.4,
+   "max": 1515880.8,
+   "p99_over_p50": 4.377021462270583,
+   "waker_syscall_p50": 2364.4,
+   "blocked_p50": 1008990.9,
+   "idle_share": {
+    "POLL": 0.0,
+    "C1": 0.3333333333333333,
+    "C2": 0.3333333333333333,
+    "C3": 0.3333333333333333
+   }
+  },
+  "other-core_idle100us": {
+   "placement": "other-core",
+   "idle_us": 100,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 4728.9,
+   "median_ci": [
+    4728.9,
+    4728.9
+   ],
+   "run_medians": [
+    4728.9,
+    4728.9,
+    4728.9
+   ],
+   "p90": 4999.4,
+   "p99": 10189.1,
+   "p999": 237935.9,
+   "max": 1625406.1,
+   "p99_over_p50": 2.1546448434096725,
+   "waker_syscall_p50": 881.7,
+   "blocked_p50": 108743.8,
+   "idle_share": {
+    "POLL": 0.001918362996909304,
+    "C1": 0.05303030303030303,
+    "C2": 0.9105474439589328,
+    "C3": 0.03450389001385484
+   }
+  },
+  "other-core_idle20us": {
+   "placement": "other-core",
+   "idle_us": 20,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100196,
+   "missed": 4,
+   "median_ns": 2725.1,
+   "median_ci": [
+    2725.1,
+    2725.1
+   ],
+   "run_medians": [
+    2715.1,
+    2715.1,
+    2745.1
+   ],
+   "p90": 2835.3,
+   "p99": 7373.8,
+   "p999": 84097.6,
+   "max": 329758.0,
+   "p99_over_p50": 2.7058823529411766,
+   "waker_syscall_p50": 561.1,
+   "blocked_p50": 22712.6,
+   "idle_share": {
+    "POLL": 0.002644708161782514,
+    "C1": 0.9971906030515864,
+    "C2": 0.00011625090821022039,
+    "C3": 4.843787842092516e-05
+   }
+  },
+  "same-cpu_idle10000us": {
+   "placement": "same-cpu",
+   "idle_us": 10000,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 21000,
+   "missed": 0,
+   "median_ns": 11832.2,
+   "median_ci": [
+    11762.0,
+    11922.3
+   ],
+   "run_medians": [
+    9137.1,
+    11341.3,
+    14857.8
+   ],
+   "p90": 18805.2,
+   "p99": 26950.5,
+   "p999": 1272945.6,
+   "max": 1648369.1,
+   "p99_over_p50": 2.277725190581633,
+   "waker_syscall_p50": 8305.6,
+   "blocked_p50": 10048842.1,
+   "idle_share": {
+    "POLL": 0.002217805812379389,
+    "C1": 0.2129765642251601,
+    "C2": 0.45306124408345094,
+    "C3": 0.33174438587900956
+   }
+  },
+  "same-cpu_idle1000us": {
+   "placement": "same-cpu",
+   "idle_us": 1000,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 4758.9,
+   "median_ci": [
+    4758.9,
+    4758.9
+   ],
+   "run_medians": [
+    4748.9,
+    4748.9,
+    4768.9
+   ],
+   "p90": 6371.9,
+   "p99": 11050.7,
+   "p999": 34644.9,
+   "max": 1624384.2,
+   "p99_over_p50": 2.322112252831537,
+   "waker_syscall_p50": 2354.4,
+   "blocked_p50": 1008630.2,
+   "idle_share": {
+    "POLL": 0.0024976451642308045,
+    "C1": 0.3272492479718027,
+    "C2": 0.637680410804898,
+    "C3": 0.032572696059068394
+   }
+  },
+  "same-cpu_idle100us": {
+   "placement": "same-cpu",
+   "idle_us": 100,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 4588.6,
+   "median_ci": [
+    4588.6,
+    4588.6
+   ],
+   "run_medians": [
+    4578.6,
+    4588.6,
+    4588.6
+   ],
+   "p90": 4728.9,
+   "p99": 7383.8,
+   "p999": 27742.0,
+   "max": 1618603.4,
+   "p99_over_p50": 1.6091618358540731,
+   "waker_syscall_p50": 2144.0,
+   "blocked_p50": 107882.2,
+   "idle_share": {
+    "POLL": 0.006643185162066967,
+    "C1": 0.09658032012127157,
+    "C2": 0.8967586606625351,
+    "C3": 1.7834054126354273e-05
+   }
+  },
+  "same-cpu_idle20us": {
+   "placement": "same-cpu",
+   "idle_us": 20,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 3095.8,
+   "median_ci": [
+    3095.8,
+    3095.8
+   ],
+   "run_medians": [
+    3115.8,
+    3075.8,
+    3075.8
+   ],
+   "p90": 3165.9,
+   "p99": 4728.9,
+   "p999": 8746.4,
+   "max": 276357.9,
+   "p99_over_p50": 1.5275211576975254,
+   "waker_syscall_p50": 1462.7,
+   "blocked_p50": 24285.5,
+   "idle_share": {
+    "POLL": 0.0016707081893341988,
+    "C1": 0.9983101980027876,
+    "C2": 0.0,
+    "C3": 1.909380787810513e-05
+   }
+  },
+  "smt-sibling_idle10000us": {
+   "placement": "smt-sibling",
+   "idle_us": 10000,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 21000,
+   "missed": 0,
+   "median_ns": 14356.9,
+   "median_ci": [
+    14036.3,
+    14717.6
+   ],
+   "run_medians": [
+    12934.2,
+    15559.2,
+    14687.5
+   ],
+   "p90": 28673.7,
+   "p99": 512811.0,
+   "p999": 1443445.1,
+   "max": 2497300.1,
+   "p99_over_p50": 35.71878330280214,
+   "waker_syscall_p50": 3516.6,
+   "blocked_p50": 10040546.6,
+   "idle_share": {
+    "POLL": 0.000912884219655158,
+    "C1": 0.20492729257558873,
+    "C2": 0.4644298467495616,
+    "C3": 0.32972997645519453
+   }
+  },
+  "smt-sibling_idle1000us": {
+   "placement": "smt-sibling",
+   "idle_us": 1000,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 6672.5,
+   "median_ci": [
+    6672.5,
+    6672.5
+   ],
+   "run_medians": [
+    6692.5,
+    6662.5,
+    6662.5
+   ],
+   "p90": 8145.3,
+   "p99": 213249.6,
+   "p999": 655548.5,
+   "max": 2897590.3,
+   "p99_over_p50": 31.9594754589734,
+   "waker_syscall_p50": 1282.4,
+   "blocked_p50": 1010483.7,
+   "idle_share": {
+    "POLL": 0.0022503501949460675,
+    "C1": 0.056638027378417874,
+    "C2": 0.3859477008500761,
+    "C3": 0.5551639215765599
+   }
+  },
+  "smt-sibling_idle1000us_load": {
+   "placement": "smt-sibling",
+   "idle_us": 1000,
+   "load": true,
+   "confirmatory": false,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 3446.5,
+   "median_ci": [
+    3446.5,
+    3446.5
+   ],
+   "run_medians": [
+    3476.5,
+    3426.4,
+    3436.4
+   ],
+   "p90": 3877.3,
+   "p99": 14817.8,
+   "p999": 799348.0,
+   "max": 1488459.5,
+   "p99_over_p50": 4.299376178732047,
+   "waker_syscall_p50": 1973.7,
+   "blocked_p50": 1006987.2,
+   "idle_share": {
+    "POLL": 0.0,
+    "C1": 0.0,
+    "C2": 0.0,
+    "C3": 1.0
+   }
+  },
+  "smt-sibling_idle100us": {
+   "placement": "smt-sibling",
+   "idle_us": 100,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 4137.8,
+   "median_ci": [
+    4137.8,
+    4147.8
+   ],
+   "run_medians": [
+    4177.8,
+    4147.8,
+    4077.6
+   ],
+   "p90": 5971.2,
+   "p99": 10890.4,
+   "p999": 358932.7,
+   "max": 1637899.5,
+   "p99_over_p50": 2.6319300111170185,
+   "waker_syscall_p50": 871.6,
+   "blocked_p50": 109124.5,
+   "idle_share": {
+    "POLL": 0.0016644474034620505,
+    "C1": 0.050730604807624924,
+    "C2": 0.8919861237648048,
+    "C3": 0.055618824024108206
+   }
+  },
+  "smt-sibling_idle20us": {
+   "placement": "smt-sibling",
+   "idle_us": 20,
+   "load": false,
+   "confirmatory": true,
+   "runs": 3,
+   "valid": 100200,
+   "missed": 0,
+   "median_ns": 2995.6,
+   "median_ci": [
+    2995.6,
+    2995.6
+   ],
+   "run_medians": [
+    2995.6,
+    2995.6,
+    2995.6
+   ],
+   "p90": 3085.8,
+   "p99": 3987.5,
+   "p999": 201237.1,
+   "max": 1298383.2,
+   "p99_over_p50": 1.3311189744959273,
+   "waker_syscall_p50": 721.4,
+   "blocked_p50": 23013.1,
+   "idle_share": {
+    "POLL": 0.002717101241133031,
+    "C1": 0.996875333572697,
+    "C2": 0.0001455589950606981,
+    "C3": 0.0002620061911092566
+   }
+  }
+ },
+ "h1": {
+  "fastest": "other-core_idle20us",
+  "slowest": "other-core_idle10000us",
+  "ratio": 11.272100106418113,
+  "ci": [
+   11.180176874243147,
+   11.367692928699864
+  ],
+  "threshold": 2.0,
+  "worst_case_run_ratio": 9.587738151615605,
+  "verdict": "SUPPORTED"
+ }
+}

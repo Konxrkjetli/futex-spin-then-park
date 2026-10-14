@@ -274,6 +274,16 @@ and the 8 locks S ∪ {pthread, pthread-adaptive}.
 - **No changes after data.** Thresholds, definitions, workloads and these rules
   are frozen at tag `prereg-v1`. Any later change is reported as a deviation,
   with both the pre-registered and the changed analysis shown.
+
+**Clarification C1 (written 2026-10-14 ~22:33 IST, after `prereg-v1` (22:28:12) but
+before any E4 data; no thresholds changed).** H2 is an OR of two metrics. Each
+metric is judged by the rule above. A case is *met* if at least one metric is
+met, *not met* if both are not met, and *inconclusive* otherwise. In the H2
+bootstrap, A\* stays the policy identified from the point estimates, and the
+"best after the shift" is recomputed in every resample. The same treatment
+applies to the AND-combination in H3/H4: a case meets the hypothesis only if
+every bound is met, misses it if any bound is not met, and is inconclusive
+otherwise.
 - **Cross-machine consistency:** compare the ranking of locks and the direction of effects across machines.
 
 ---

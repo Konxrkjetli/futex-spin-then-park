@@ -1,0 +1,23 @@
+{
+  "rule": "budgets = {0.5, 1, 2, 8} x median wake latency (other-core, idle 100 us, unloaded), rounded to 50 ns",
+  "reference_condition": "other-core_idle100us",
+  "reference_runs": [
+    "other-core_idle100us_r0.csv.gz",
+    "other-core_idle100us_r1.csv.gz",
+    "other-core_idle100us_r2.csv.gz"
+  ],
+  "reference_samples": 100200,
+  "reference_median_ns": 4728.9,
+  "multipliers": [
+    0.5,
+    1,
+    2,
+    8
+  ],
+  "budgets_ns": [
+    2350,
+    4750,
+    9450,
+    37850
+  ]
+}

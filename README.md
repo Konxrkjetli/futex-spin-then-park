@@ -18,8 +18,8 @@ is updated at the end of every phase.
 
 | Phase | Window (IST, 14–15 Oct 2026) | Status |
 |---|---|---|
-| 1. Foundation: locks, harness, wake-up benchmark, validation | 22:00 – 01:00 | **Done**, awaiting review |
-| 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | Not started |
+| 1. Foundation: locks, harness, wake-up benchmark, validation | 22:00 – 01:00 | **Done** (reviewed, approved 22:25) |
+| 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | **In progress**: `prereg-v1` tagged 22:28:12 (git tagger date); experiments running |
 | 3. Adaptive locks + throttling (RQ3, H4) | 03:30 – 06:30 | Not started |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started |
 
@@ -335,8 +335,83 @@ Full snapshot: `results/manifests/` (`make manifest`).
 
 ---
 
-## 11. Next: Phase 2
+## 11. Phase 2: pre-registration and static experiments
 
-1. Review this phase; decide on boost (§10.1) and the hypothesis wording (`TIMELINE.md` §5).
-2. Write the decisions into `RESEARCH_PHASE.md`, commit, tag `prereg-v1`, **before any data**.
-3. Experiment runner script, then RQ1 wake-up data, steady sweep, phase-changing and randomized workloads.
+### 11.1 Pre-registration (`prereg-v1`)
+
+Before any experiment data existed, the hypotheses, operational definitions,
+experiment matrix and verdict rules were written into `RESEARCH_PHASE.md`
+(§3.2, §5.6, §5.7, §6.1), committed, and tagged:
+
+```bash
+git show prereg-v1          # the frozen version
+git diff prereg-v1 -- RESEARCH_PHASE.md   # anything changed since (must be logged)
+```
+
+What is frozen, in short:
+
+| Hypothesis | Test |
+|---|---|
+| H1 | median wake latency of the slowest / fastest of 12 unloaded conditions ≥ 2× |
+| H2 | after a 100 ns ↔ 20 µs hold shift, the previously best static lock loses ≥ 25% throughput or has ≥ 2× p99, in each of 4 cases |
+| H3 | each adaptive policy ≥ 0.85× throughput and ≤ 1.2× p99.9 of the best single static lock, on each of 6 workloads (Phase 3) |
+| H4 | throttle-aware: ≥ 2× lower p99.9 than spin and ≤ 1.10× the best static lock, in each of 4 throttled cases (Phase 3) |
+
+Verdict rule: the point estimate decides; if the 95% interval contains the
+threshold, the case is *inconclusive*. One clarification (C1, how H2's OR of
+two metrics combines with that rule) was added after the tag but before any E4
+data, with no threshold changes.
+
+Integrity notes: the TIMELINE §5 hypothesis wording was proposed before any
+pilot data. Validation pilot data was seen before the tag (README §10.5).
+
+### 11.2 Experiments (matrix in `scripts/experiments.py`)
+
+| ID | What | Runs | Status |
+|---|---|---|---|
+| E1 | Wake-up latency: 3 placements × 4 idle depths, plus 2 loaded conditions | 42 | running |
+| E2 | Steady sweep: 8 locks × hold {100 ns, 1 µs, 10 µs, 50 µs} × T {4, 8, 16, 32} | 640 | after E1 |
+| E3 | Unpinned subset | 96 | after E2 |
+| E4 | Phase-changing S1 (hold shift) and S2 (thread shift), T {8, 16} | 320 | after E3 |
+| E5 | Randomized R1 (bimodal hold, exponential think), T {8, 16} | 160 | after E4 |
+
+The 8 locks are `park`, `stp:b1..b4`, `spin`, `pthread` and `pthread-adaptive`.
+The budgets b1..b4 = {0.5, 1, 2, 8} × the median wake latency of E1
+`other-core / idle 100 µs`, computed by `scripts/choose_budgets.py` into
+`config/budgets.json` after E1 and before E2.
+
+### 11.3 How experiments are run and recorded
+
+```bash
+python3 scripts/run_experiments.py e1 --dry-run   # show the run list, no data
+python3 scripts/run_experiments.py e1             # run (resumable: re-run to continue)
+python3 scripts/choose_budgets.py                 # after E1: writes config/budgets.json
+python3 scripts/analyze.py e1                     # tables -> docs/results/e1.md
+```
+
+- **Order:** runs execute in a seeded random order (seed 20261014), so drift is
+  spread across all locks instead of hitting whichever runs last.
+- **Calibration:** one TSC calibration and one work-loop calibration per
+  session, shared by every run in it.
+- **Clean code only:** the runner refuses to start if code or config has
+  uncommitted changes, so the commit hash in every record is the code that ran.
+- **Invalid runs:** a failed process or `counter_ok = false` is re-run (up to 2
+  retries) and counted. Slow runs are never dropped.
+- **Layout:** `results/<exp>/runs.jsonl` (one line per run, append-only),
+  `results/<exp>/runs/<id>.json`, and per run `.hist.csv` and `.win.csv`
+  (bench) or `.csv.gz` (raw wake samples). Session files hold the start and
+  end manifests and the run order.
+
+### 11.4 Analysis (`scripts/analyze.py`, `scripts/stats.py`)
+
+Standard library only (numpy/scipy are not installed):
+
+- **Throughput:** mean over runs.
+- **Tail latency:** quantiles of histograms pooled over runs.
+- **Intervals:** bootstrap over runs with 2,000 resamples (deviation D12 from
+  the planned 10,000). For wake-up medians, distribution-free order-statistic
+  intervals.
+- **Labels:** only H1–H4 are confirmatory; every other table is labelled
+  exploratory.
+
+Outputs go to `docs/results/<exp>.md` and `results/analysis/<exp>.json`.

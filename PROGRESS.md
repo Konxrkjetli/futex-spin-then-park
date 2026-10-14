@@ -96,8 +96,8 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | D8 | Two validation criteria revised after the first run (work-loop tolerance 5% → 5% + 10 ns; context-switch check voluntary-only) | Timer uncertainty; involuntary switches come from other processes. Harness-validation criteria only, not hypothesis thresholds | 2026-10-14 22:11 |
 | D9 | Drift covariates added to every bench run (Tctl before/after, post-run work rate) | Validation exposed 4–7% clock drop under sustained load | 2026-10-14 22:12 |
 | D11 | Boost left on for all experiments | Team gave the Phase 2 go-ahead without disabling boost; drift covariates recorded, limitation stated | 2026-10-14 22:25 |
-| D12 | Bootstrap resamples 2,000 instead of ≥ 10,000; order-statistic CIs for wake medians | Pure-Python analysis (numpy/scipy not installed) | 2026-10-14 22:30 |
-| D13 | Run records stored as JSON lines (`runs.jsonl`) plus per-run files instead of one CSV | Nested per-phase data; analysis flattens to CSV/tables | 2026-10-14 22:30 |
+| D12 | Bootstrap resamples 2,000 instead of ≥ 10,000; order-statistic CIs for wake medians | Pure-Python analysis (numpy/scipy not installed) | 2026-10-14 22:28 |
+| D13 | Run records stored as JSON lines (`runs.jsonl`) plus per-run files instead of one CSV | Nested per-phase data; analysis flattens to CSV/tables | 2026-10-14 22:28 |
 | D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
 
 ## Log
@@ -115,4 +115,6 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 22:13 | Drift covariates added; validation run 3: 15/15 pass; drift −4…−7% per run, Tctl 65→70 °C |
 | 22:15 | README written; Phase 1 committed; awaiting review |
 | 22:25 | Phase 2 go-ahead (TIMELINE §5 decisions approved as written); boost still on; packages not installed |
-| 22:35 | Pre-registration written (RESEARCH_PHASE §3.2, §5.6, §5.7, §6.1); runner + matrix + budget rule scripted; dry runs OK |
+| 22:28 | Pre-registration committed and tagged `prereg-v1` (git tagger date 22:28:12; the tag message says "22:35", an estimate made while writing it; git's date is authoritative) |
+| 22:28:18 | E1 first run started (first experiment data; after the tag) |
+| 22:33 | Clarification C1 (H2 OR-rule × inconclusive rule) added to RESEARCH_PHASE §6.1; analysis scripts written |
