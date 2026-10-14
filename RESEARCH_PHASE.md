@@ -50,14 +50,31 @@ Original overview question (preserved): *How do contention intensity, critical-s
 
 These are retained for traceability. The refined hypotheses below make them quantitative and falsifiable.
 
-### 3.2 Refined hypotheses with proposed thresholds
+### 3.2 Refined hypotheses: pre-registered version `prereg-v1`
 
-| ID | Proposed hypothesis | Proposed refutation / support criterion | Status |
+These are the hypotheses that will be tested. They were committed and tagged
+`prereg-v1` before any experiment data was collected. Operational definitions
+are in §5.6, the experiment matrix in §5.7, and the verdict rules in §6.1.
+
+| ID | Hypothesis (prereg-v1) | Support / refutation criterion | Status |
 |---|---|---|---|
-| **H1** | Wake-up latency varies by at least 3x between p50 and p99 across placement and idle-state conditions, so no single fixed spin budget can be near-optimal across them | Refuted if the p99/p50 spread is below the threshold in all conditions | **Proposed. Pending.** |
-| **H2** | When hold time shifts (for example from about 100 ns to about 20 µs), the best static budget from before the shift loses at least 25% throughput or at least doubles p99 latency afterwards | Refuted if the degradation is below both thresholds | **Proposed. Pending.** |
-| **H3** | The adaptive lock stays within 15% of the best static policy in every phase, with p99.9 latency no worse than 1.2x the best policy's, across tested workloads | Refuted if either bound is exceeded in any pre-declared phase | **Proposed. Pending.** |
-| **H4** | Under cgroup CPU quota throttling, spin-heavy locks show inflated p99.9 latency that the throttle-aware variant reduces by at least 2x | Refuted if the reduction is below 2x | **Proposed. Pending.** |
+| **H1** | The median futex wake-up latency in the slowest of the 12 unloaded placement × idle conditions (§5.7, E1) is at least **2×** the median in the fastest condition | Supported if the ratio ≥ 2; refuted if < 2. The p99/p50 spread of each condition is reported descriptively, not tested | **Pending** |
+| **H2** | After a hold-time shift (100 ns ↔ 20 µs), the static policy that was best before the shift either loses ≥ **25%** throughput relative to the best static policy after the shift, or has ≥ **2×** the lowest static p99 after the shift | Evaluated per transition case (§5.6). Supported if met in all 4 cases, partially supported if met in 1–3, refuted if met in none | **Pending** |
+| **H3** | Each adaptive policy (A and B, judged separately) reaches ≥ **0.85×** the throughput of the best single static policy over the whole run, with p99.9 ≤ **1.2×** that policy's p99.9, on every workload in the H3 set | Supported if both bounds hold on all 6 H3 workloads; partially supported if they hold on some; refuted if on none | **Pending** |
+| **H4** | Under cgroup CPU quota throttling, the throttle-aware variant has (a) ≥ **2×** lower p99.9 than spin-only **and** (b) p99.9 within **1.10×** of the best static policy under the same quota | Evaluated per H4 case (§5.7, E7). Supported if (a) and (b) hold in all cases, partially supported if in some, refuted if in none | **Pending** |
+
+**History.** The earlier proposed wording (H1: p99/p50 spread ≥ 3×; H3: within
+15% "in every phase"; H4: ≥ 2× reduction vs spin-heavy locks only) was revised
+before any data. The reasons:
+- p99/p50 spread within one condition does not show that the best budget
+  differs *between* conditions.
+- EXP3-style guarantees are against the best *single* static policy, not the
+  best per phase.
+- Beating spin-only alone would not separate the throttle-aware variant from
+  "always park".
+
+The revision was proposed in `TIMELINE.md` §5 and approved with the Phase 2
+go-ahead, 2026-10-14 22:25 IST.
 
 ### 3.3 Rules for the hypotheses
 1. Thresholds above are **proposals**. Any adjustment must be made **before** final data collection, committed to version control, and recorded in the decision log with a justification.
@@ -69,10 +86,10 @@ These are retained for traceability. The refined hypotheses below make them quan
 
 | Hypothesis | Threshold | Observed result | Verdict |
 |---|---|---|---|
-| H1 | PENDING | PENDING | PENDING |
-| H2 | PENDING | PENDING | PENDING |
-| H3 | PENDING | PENDING | PENDING |
-| H4 | PENDING | PENDING | PENDING |
+| H1 | slowest/fastest median ≥ 2× | PENDING | PENDING |
+| H2 | loss ≥ 25% or p99 ratio ≥ 2×, in each of 4 cases | PENDING | PENDING |
+| H3 | throughput ≥ 0.85× and p99.9 ≤ 1.2× of best static, on each of 6 workloads (per policy) | PENDING | PENDING |
+| H4 | p99.9 ≥ 2× lower than spin and ≤ 1.10× best static, in each of 4 cases | PENDING | PENDING |
 
 ---
 
@@ -144,11 +161,84 @@ Throughput (overall and windowed), acquire latency (p50, p99, p99.9, max), fairn
 - Include warm-up periods and report them.
 - Do not discard slow samples; tail behaviour is part of the result.
 
-### 5.6 Pre-declared definitions (to finalise before data collection)
-- What counts as a "phase" and how the first moments after a shift are treated.
-- How the "best static policy in hindsight" is determined for each workload.
-- How "within 15%" and "within 1.2x" are computed (per phase, per run, per machine).
-- Which workloads count toward each hypothesis.
+### 5.6 Pre-declared definitions (prereg-v1)
+
+**Lock families.**
+- *Static family* S = {`park`, `stp:b1`, `stp:b2`, `stp:b3`, `stp:b4`, `spin`}, the team's
+  implementations, which share one code path except for the spin budget.
+- *External baselines* {`pthread`, `pthread-adaptive`} are measured and reported
+  in every experiment but are **not** candidates for "best static policy".
+- *Adaptive*: Policy A, Policy B (Phase 3). *Throttle-aware*: Phase 3.
+
+**Spin-budget rule.** Let m be the median wake-up latency of E1 condition
+`other-core / idle 100 µs / unloaded`, pooled over its runs. Then
+b1..b4 = {0.5, 1, 2, 8} × m, each rounded to the nearest 50 ns. The budgets
+are computed by `scripts/choose_budgets.py` and committed to
+`config/budgets.json` before E2–E5 run.
+
+**Phases and transitions.** A *phase* is a span of fixed hold time, think time
+and active thread count. The first **100 ms** after every shift is a
+*transition window*, implemented as its own harness phase and **excluded** from
+all phase metrics. It is still recorded and shown in time-series figures.
+
+**Metrics.**
+- *Throughput* of a policy in a span = mean over runs of that run's throughput
+  in the span.
+- *Tail latency* (p99, p99.9) = nearest-rank quantile of the histogram pooled
+  over all runs of that configuration.
+
+**Best static policy.** For a given span, the member of S with the highest
+throughput. Ties within 1% go to the lower p99.
+
+**H2 transition cases.** Workload S1 (§5.7) at T ∈ {8, 16} has two shifts
+(100 ns → 20 µs, then 20 µs → 100 ns), giving 4 cases. For each case let A\* be
+the best static policy in the pre-shift phase. Then
+- loss = 1 − throughput(A\*, post) / max over s∈S of throughput(s, post),
+- tail ratio = p99(A\*, post) / min over s∈S of p99(s, post).
+
+The case meets H2 if loss ≥ 0.25 or tail ratio ≥ 2.
+
+**H3.**
+- Workload set: S1, S2 and R1 (§5.7) at T ∈ {8, 16}, 6 workloads in total.
+- The span is the whole run minus the transition windows.
+- Best static policy B\* is chosen per workload by the rule above.
+- Bounds per workload: throughput(adaptive) ≥ 0.85 × throughput(B\*), and
+  p99.9(adaptive) ≤ 1.2 × p99.9(B\*).
+- H3 data comes from one Phase 3 session in which static and adaptive locks run
+  interleaved in random order, so session-to-session drift cannot favour
+  either side.
+- Adaptive-policy parameters may be tuned **only** on steady workloads at
+  T = 4 (tuning set), never on H3 workloads.
+
+**H4.** For each H4 case (§5.7, E7):
+- (a) p99.9(spin) / p99.9(throttle-aware) ≥ 2;
+- (b) p99.9(throttle-aware) ≤ 1.10 × min over s∈S of p99.9(s) under the same quota.
+
+**Data exclusion.** No samples or runs are dropped for being slow. A run is
+invalid only if the harness reports `counter_ok = false` or the process fails.
+Invalid runs are re-run, and their number is reported.
+
+**Run order and environment.** Every experiment runs in a seeded random order
+across all its configurations. One work-loop calibration and one TSC
+calibration are shared per session. Turbo boost stays **on** (team decision,
+2026-10-14), and drift covariates (temperature, post-run work rate) are
+recorded per run and reported.
+
+### 5.7 Experiment matrix (prereg-v1)
+
+All bench runs use cores-first pinning (except E3), think time 1 µs (except
+E5), 200 ms warm-up, 10 ms throughput windows, a latency histogram per run,
+and the 8 locks S ∪ {pthread, pthread-adaptive}.
+
+| ID | Experiment | Configurations | Runs | Serves |
+|---|---|---|---|---|
+| E1 | Wake-up latency | placements {smt-sibling 2↔3, other-core 2↔4, same-cpu 2↔2} × idle {20 µs, 100 µs, 1 ms, 10 ms}, unloaded (12 conditions); plus a CPU hog on the sleeper's CPU for smt-sibling and other-core at 1 ms idle (2 descriptive conditions). Samples per run: 33,400 (7,000 at 10 ms idle) | 3 per condition | RQ1, H1, budget rule |
+| E2 | Steady sweep | hold {100 ns, 1 µs, 10 µs, 50 µs} × T {4, 8, 16, 32}, 2 s | 5 | RQ2 (best lock map) |
+| E3 | Unpinned subset | hold {1 µs, 10 µs} × T {8, 32}, no pinning, 2 s | 3 | Pinning sensitivity |
+| E4 | Phase-changing | S1: hold 100 ns → 20 µs → 100 ns at T active; S2: hold 1 µs, active T/4 → T → T/4. Each phase 1.5 s (first 100 ms is transition). T ∈ {8, 16} | 10 | RQ2, H2 (S1) |
+| E5 | Randomized | R1: hold 200 ns, or 20 µs with probability 0.1; exponential think, mean 2 µs; T ∈ {8, 16}, 3 s | 10 | RQ2 |
+| E6 | H3 session (Phase 3) | S1, S2, R1 at T ∈ {8, 16}, static and adaptive locks interleaved | 10 | H3 |
+| E7 | Throttled (Phase 3) | steady hold {1 µs, 10 µs}, T = 16, under `CPUQuota` {200%, 400%}, period 100 ms: 4 cases | 10 | H4 |
 
 ---
 
@@ -161,6 +251,29 @@ Throughput (overall and windowed), acquire latency (p50, p99, p99.9, max), fairn
 - **Regret analysis (RQ3):** for each workload, compute the cumulative cost of the adaptive lock and that of the best static budget in hindsight; report the difference over time.
 - **Theory component (modest, optional):** state assumptions explicitly and cite known results only after verifying them. If a proof is not achieved, report the empirical regret analysis only and say so.
 - **Hypothesis verdicts:** compare observed values against the pre-committed thresholds and fill the table in Section 3.4.
+
+### 6.1 Verdict and interval rules (prereg-v1)
+
+- **Point estimate decides; the interval can veto.** A case meets or misses a
+  threshold based on the point estimate. If the 95% interval of the deciding
+  quantity contains the threshold, the case is marked **inconclusive**. It is
+  counted as neither met nor missed, and reported as such.
+- **Intervals:**
+  - Throughput ratios: bootstrap over runs (2,000 resamples, percentile intervals).
+  - Pooled tail-latency quantiles and their ratios: bootstrap over runs, merging
+    the resampled runs' histograms (2,000 resamples).
+  - Wake-up medians (E1): distribution-free order-statistic interval for each
+    median. For the H1 ratio, the conservative interval
+    [lo(slow) / hi(fast), hi(slow) / lo(fast)].
+  - The target of ≥ 10,000 bootstrap resamples (§6) is reduced to 2,000
+    because analysis runs in pure Python (numpy/scipy not installed). This is
+    a recorded deviation.
+- **Multiple comparisons:** only the H1–H4 comparisons above are
+  confirmatory. Everything else (heatmaps, pthread comparisons, fairness,
+  unpinned runs) is exploratory and labelled as such.
+- **No changes after data.** Thresholds, definitions, workloads and these rules
+  are frozen at tag `prereg-v1`. Any later change is reported as a deviation,
+  with both the pre-registered and the changed analysis shown.
 - **Cross-machine consistency:** compare the ranking of locks and the direction of effects across machines.
 
 ---

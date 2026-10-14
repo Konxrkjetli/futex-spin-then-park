@@ -2,7 +2,7 @@
 
 Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Times are IST.
 
-**Current phase:** Phase 1 complete, awaiting review before Phase 2
+**Current phase:** Phase 2 (pre-registration done; E1 running)
 **Results status:** PENDING. No data collected.
 
 ---
@@ -12,7 +12,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | Phase | Window | Status | Started | Finished |
 |---|---|---|---|---|
 | 1. Foundation | 22:00 – 01:00 | **Done** (awaiting review) | 21:55 | 22:15 |
-| 2. Pre-registration + static experiments | 01:00 – 03:30 | Not started | | |
+| 2. Pre-registration + static experiments | 01:00 – 03:30 | **In progress** | 22:25 | |
 | 3. Adaptive + throttling | 03:30 – 06:30 | Not started | | |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started | | |
 
@@ -46,9 +46,9 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 
 ## Phase 2: Pre-registration + static experiments
 
-- [ ] Hypothesis decisions (`TIMELINE.md` §5) applied to `RESEARCH_PHASE.md`
-- [ ] Pre-declared definitions written (`RESEARCH_PHASE.md` §5.6)
-- [ ] Commit + tag `prereg-v1` (before any data)
+- [x] Hypothesis decisions (`TIMELINE.md` §5) applied to `RESEARCH_PHASE.md`
+- [x] Pre-declared definitions written (`RESEARCH_PHASE.md` §5.6)
+- [x] Commit + tag `prereg-v1` (before any data)
 - [ ] RQ1 wake-up microbenchmark data
 - [ ] Final static budget set chosen by the pre-declared rule
 - [ ] Steady sweep (static locks)
@@ -95,6 +95,9 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | D7 | Spin-lock backoff cap 64 → 16 pauses | `pause` measured at 14 ns on this CPU | 2026-10-14 22:03 |
 | D8 | Two validation criteria revised after the first run (work-loop tolerance 5% → 5% + 10 ns; context-switch check voluntary-only) | Timer uncertainty; involuntary switches come from other processes. Harness-validation criteria only, not hypothesis thresholds | 2026-10-14 22:11 |
 | D9 | Drift covariates added to every bench run (Tctl before/after, post-run work rate) | Validation exposed 4–7% clock drop under sustained load | 2026-10-14 22:12 |
+| D11 | Boost left on for all experiments | Team gave the Phase 2 go-ahead without disabling boost; drift covariates recorded, limitation stated | 2026-10-14 22:25 |
+| D12 | Bootstrap resamples 2,000 instead of ≥ 10,000; order-statistic CIs for wake medians | Pure-Python analysis (numpy/scipy not installed) | 2026-10-14 22:30 |
+| D13 | Run records stored as JSON lines (`runs.jsonl`) plus per-run files instead of one CSV | Nested per-phase data; analysis flattens to CSV/tables | 2026-10-14 22:30 |
 | D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
 
 ## Log
@@ -111,3 +114,5 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 22:11 | Validation run 2: 13/14 — stp:1000 repeatability CV 7.2% (monotonic throughput decline across runs) |
 | 22:13 | Drift covariates added; validation run 3: 15/15 pass; drift −4…−7% per run, Tctl 65→70 °C |
 | 22:15 | README written; Phase 1 committed; awaiting review |
+| 22:25 | Phase 2 go-ahead (TIMELINE §5 decisions approved as written); boost still on; packages not installed |
+| 22:35 | Pre-registration written (RESEARCH_PHASE §3.2, §5.6, §5.7, §6.1); runner + matrix + budget rule scripted; dry runs OK |
