@@ -49,8 +49,8 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 - [x] Hypothesis decisions (`TIMELINE.md` §5) applied to `RESEARCH_PHASE.md`
 - [x] Pre-declared definitions written (`RESEARCH_PHASE.md` §5.6)
 - [x] Commit + tag `prereg-v1` (before any data)
-- [ ] RQ1 wake-up microbenchmark data
-- [ ] Final static budget set chosen by the pre-declared rule
+- [x] RQ1 wake-up microbenchmark data
+- [x] Final static budget set chosen by the pre-declared rule
 - [ ] Steady sweep (static locks)
 - [ ] Unpinned subset
 - [ ] Phase-changing workload data
@@ -118,3 +118,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 22:28 | Pre-registration committed and tagged `prereg-v1` (git tagger date 22:28:12; the tag message says "22:35", an estimate made while writing it; git's date is authoritative) |
 | 22:28:18 | E1 first run started (first experiment data; after the tag) |
 | 22:33 | Clarification C1 (H2 OR-rule × inconclusive rule) added to RESEARCH_PHASE §6.1; analysis scripts written |
+| 22:48 | E1 done: 42 runs, 0 invalid, 20.6 min |
+| 22:49 | Budget rule applied: reference median 4728.9 ns → stp:2350/4750/9450/37850 (config/budgets.json) |
+| 22:49 | E1 analysed: **H1 SUPPORTED** (ratio 11.27, CI 11.18–11.37; worst-case run ratio 9.59) |
+| 22:50 | Committed a5ccb55 (E1 data, budgets, analysis, C1); E2→E5 chain started |

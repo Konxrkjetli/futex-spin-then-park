@@ -369,8 +369,8 @@ pilot data. Validation pilot data was seen before the tag (README §10.5).
 
 | ID | What | Runs | Status |
 |---|---|---|---|
-| E1 | Wake-up latency: 3 placements × 4 idle depths, plus 2 loaded conditions | 42 | running |
-| E2 | Steady sweep: 8 locks × hold {100 ns, 1 µs, 10 µs, 50 µs} × T {4, 8, 16, 32} | 640 | after E1 |
+| E1 | Wake-up latency: 3 placements × 4 idle depths, plus 2 loaded conditions | 42 | **done** 22:48, 0 invalid |
+| E2 | Steady sweep: 8 locks × hold {100 ns, 1 µs, 10 µs, 50 µs} × T {4, 8, 16, 32} | 640 | running (started 22:50) |
 | E3 | Unpinned subset | 96 | after E2 |
 | E4 | Phase-changing S1 (hold shift) and S2 (thread shift), T {8, 16} | 320 | after E3 |
 | E5 | Randomized R1 (bimodal hold, exponential think), T {8, 16} | 160 | after E4 |
@@ -379,6 +379,10 @@ The 8 locks are `park`, `stp:b1..b4`, `spin`, `pthread` and `pthread-adaptive`.
 The budgets b1..b4 = {0.5, 1, 2, 8} × the median wake latency of E1
 `other-core / idle 100 µs`, computed by `scripts/choose_budgets.py` into
 `config/budgets.json` after E1 and before E2.
+
+**Budgets chosen (2026-10-14 22:49):** reference median 4728.9 ns (100,200
+samples), so the static locks are `stp:2350`, `stp:4750`, `stp:9450` and
+`stp:37850`.
 
 ### 11.3 How experiments are run and recorded
 
@@ -415,3 +419,40 @@ Standard library only (numpy/scipy are not installed):
   exploratory.
 
 Outputs go to `docs/results/<exp>.md` and `results/analysis/<exp>.json`.
+
+### 11.5 Results so far
+
+**H1: SUPPORTED** (confirmatory; full table in `docs/results/e1.md`).
+
+- Fastest unloaded condition: other-core, 20 µs idle, median **2.73 µs**.
+- Slowest: other-core, 10 ms idle, median **30.72 µs**.
+- Ratio **11.27** (conservative 95% interval 11.18–11.37), threshold 2.
+- Robustness check that does not assume independent samples: the lowest
+  per-run median of the slowest condition over the highest of the fastest is
+  still **9.59**.
+
+E1 observations (descriptive, not tested):
+
+| Idle before wake | other-core median | smt-sibling median | same-cpu median | Mostly reached |
+|---|---|---|---|---|
+| 20 µs | 2.73 µs | 3.00 µs | 3.10 µs | C1 |
+| 100 µs | 4.73 µs | 4.14 µs | 4.59 µs | C2 |
+| 1 ms | 5.70 µs | 6.67 µs | 4.76 µs | C2/C3 |
+| 10 ms | 30.72 µs | 14.36 µs | 11.83 µs | C2/C3 |
+
+- **Idle depth drives the median.** The longer the sleeper's CPU idles, the
+  deeper its C-state and the slower the wake. The 10 ms condition is also the
+  least stable between runs: per-run medians of 26–35 µs (other-core) and
+  9–15 µs (same-cpu).
+- **Tails are heavy and grow with idle depth.** p99/p50 is 1.3–2.7 at 20 µs
+  idle but 15–36 at 1–10 ms (smt-sibling / other-core). p99.9 is
+  0.2–1.6 ms for smt-sibling and other-core (84 µs at other-core / 20 µs
+  idle). Same-cpu tails are much shorter (p99.9 9–35 µs) except at 10 ms
+  idle (1.3 ms).
+- **The waker's own `futex_wake` cost also grows with idle depth**: 0.56 µs
+  (other-core, 20 µs idle) up to 3.0–3.5 µs (10 ms idle), and 1.5–8.3 µs for
+  same-cpu. The releaser side of a lock pays part of the wake cost too.
+- **With a CPU hog on the sleeper's CPU** the median is lower (3.5–3.7 µs at
+  1 ms idle, because the CPU never enters idle), but p99.9 is about 0.8 ms.
+- **Missed wakes:** 4 of 100,200 in one condition (other-core, 20 µs idle),
+  0 elsewhere.
