@@ -1,0 +1,113 @@
+# PROGRESS.md
+
+Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Times are IST.
+
+**Current phase:** Phase 1 complete, awaiting review before Phase 2
+**Results status:** PENDING. No data collected.
+
+---
+
+## Phase status
+
+| Phase | Window | Status | Started | Finished |
+|---|---|---|---|---|
+| 1. Foundation | 22:00 – 01:00 | **Done** (awaiting review) | 21:55 | 22:15 |
+| 2. Pre-registration + static experiments | 01:00 – 03:30 | Not started | | |
+| 3. Adaptive + throttling | 03:30 – 06:30 | Not started | | |
+| 4. Analysis + write-up | 06:30 – 09:30 | Not started | | |
+
+---
+
+## Phase 1: Foundation
+
+- [ ] (you) Install perf, strace, cpupower, python-pandas, python-scipy, python-matplotlib — **not done yet; Phase 1 worked around it (getrusage, stdlib-only scripts); pandas/scipy needed by Phase 4**
+- [ ] (you, optional) Turn off boost, or confirm it stays on and is recorded — **boost still on; validation shows 4–7% clock drift under load (README §7, §10.1); decide before Phase 2**
+- [x] git init + repository layout + Makefile
+- [x] Machine manifest script
+- [x] futex wrappers, cpu_relax, TSC timing + calibration
+- [x] Common lock interface
+- [x] Park-only lock
+- [x] Spin-only lock
+- [x] Static spin-then-park lock
+- [x] pthread default + adaptive wrappers
+- [x] Shared-counter correctness test, all locks
+- [x] ThreadSanitizer build clean
+- [x] Benchmark harness (pinning, hold/think work, per-thread latency buffers, CSV)
+- [x] Wake-up latency microbenchmark
+- [x] Harness validation checklist (`BUILD_PHASE.md` §7.2)
+  - [x] Counter exact for every lock
+  - [x] Single-thread no-lock throughput sensible
+  - [x] Throughput tracks hold time proportionally
+  - [x] Run-to-run variation measured; threshold recorded
+  - [x] Timer overhead measured
+  - [x] Work loops not optimised away
+  - [x] No false sharing
+  - [x] Context switches: near zero for spin-only, high for park-only
+
+## Phase 2: Pre-registration + static experiments
+
+- [ ] Hypothesis decisions (`TIMELINE.md` §5) applied to `RESEARCH_PHASE.md`
+- [ ] Pre-declared definitions written (`RESEARCH_PHASE.md` §5.6)
+- [ ] Commit + tag `prereg-v1` (before any data)
+- [ ] RQ1 wake-up microbenchmark data
+- [ ] Final static budget set chosen by the pre-declared rule
+- [ ] Steady sweep (static locks)
+- [ ] Unpinned subset
+- [ ] Phase-changing workload data
+- [ ] Randomized workload data
+- [ ] Data committed
+
+## Phase 3: Adaptive + throttling
+
+- [ ] Policy A (estimate-and-set)
+- [ ] Policy B (Hedge, censored feedback)
+- [ ] (optional) EXP3 variant
+- [ ] Adaptive locks: counter test + TSan
+- [ ] Policy overhead measured
+- [ ] Adaptive locks on steady / phase-changing / randomized workloads
+- [ ] Throttle-aware variant
+- [ ] Throttled runs (H4)
+- [ ] Data committed
+
+## Phase 4: Analysis + write-up
+
+- [ ] Analysis scripts (bootstrap CIs, tests, Jain's index, regret)
+- [ ] Figures 1–10
+- [ ] Hypothesis verdicts → `RESEARCH_PHASE.md` §3.4
+- [ ] Literature details located; reading list flagged
+- [ ] Report draft `docs/report.md`
+- [ ] README reproduction instructions
+- [ ] Data freeze commit + tag
+- [ ] (stretch) LD_PRELOAD shim + real application
+
+---
+
+## Deviations from the original plan
+
+| # | Deviation | Reason | Logged at |
+|---|---|---|---|
+| D1 | 10-week timeline compressed to one night | Team decision | 2026-10-14 21:45 |
+| D2 | 5 runs (sweeps) / 10 runs (confirmatory) instead of 30 | Machine time | 2026-10-14 21:45 |
+| D3 | Second machine and energy cut; real application is a stretch goal | Time | 2026-10-14 21:45 |
+| D4 | SMT left on; no "different socket" condition | Needs root / single-socket machine | 2026-10-14 21:45 |
+| D5 | Policy B uses Hedge with censored feedback (EXP3 optional) | Richer feedback is available; to be confirmed at Phase 1 review | 2026-10-14 21:45 |
+| D6 | Context switches and CPU time from `getrusage`, not perf | perf not installed | 2026-10-14 22:00 |
+| D7 | Spin-lock backoff cap 64 → 16 pauses | `pause` measured at 14 ns on this CPU | 2026-10-14 22:03 |
+| D8 | Two validation criteria revised after the first run (work-loop tolerance 5% → 5% + 10 ns; context-switch check voluntary-only) | Timer uncertainty; involuntary switches come from other processes. Harness-validation criteria only, not hypothesis thresholds | 2026-10-14 22:11 |
+| D9 | Drift covariates added to every bench run (Tctl before/after, post-run work rate) | Validation exposed 4–7% clock drop under sustained load | 2026-10-14 22:12 |
+| D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
+
+## Log
+
+| Time | Event |
+|---|---|
+| 21:43 | Machine checked: Ryzen 7 6800H, kernel 7.2.5, glibc 2.44, cgroup v2 with cpu delegated to user, governor performance |
+| 21:45 | Plan written (`TIMELINE.md`, `PROGRESS.md`); waiting for go-ahead |
+| 21:55 | Go-ahead received for Phase 1 ("done"); TIMELINE §5 hypothesis decisions still to be confirmed at review; git init |
+| 22:00 | Locks + correctness test: 18/18 pass; TSan 18/18 pass, 0 warnings |
+| 22:03 | calib: TSC 3.194 GHz, stamp pair 20 ns, pause 14 ns, futex_wake (no waiter) 295 ns, TSC consistent across CPUs |
+| 22:05 | Harness + wakebench smoke tests OK; pilot observation: barging/unfairness for stp:2000 at 20 µs holds |
+| 22:10 | Validation run 1: crashed at the wakebench check (script bug) after two FAILs (work-loop tolerance, spin context switches) |
+| 22:11 | Validation run 2: 13/14 — stp:1000 repeatability CV 7.2% (monotonic throughput decline across runs) |
+| 22:13 | Drift covariates added; validation run 3: 15/15 pass; drift −4…−7% per run, Tctl 65→70 °C |
+| 22:15 | README written; Phase 1 committed; awaiting review |

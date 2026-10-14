@@ -1,0 +1,1929 @@
+{
+ "manifest": {
+  "collected_at": "2026-10-14T22:11:57+0530",
+  "machine_id": "45dc2ca9a840",
+  "cpu": {
+   "model": "AMD Ryzen 7 6800H with Radeon Graphics",
+   "cpus": "16",
+   "threads_per_core": "2",
+   "cores_per_socket": "8",
+   "sockets": "1",
+   "numa_nodes": "1",
+   "l3": "16 MiB (1 instance)",
+   "tsc_flags": [
+    "constant_tsc",
+    "nonstop_tsc",
+    "rdtscp"
+   ]
+  },
+  "topology": [
+   {
+    "cpu": 0,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 1,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 2,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 3,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 4,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 5,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 6,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 7,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 8,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 9,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 10,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 11,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 12,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 13,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 14,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 15,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   }
+  ],
+  "kernel": "7.2.5-3-omarchy",
+  "kernel_cmdline_relevant": [],
+  "glibc": "ldd (GNU libc) 2.44",
+  "compiler": "gcc (GCC) 16.2.1 20260810",
+  "build_flags": "CC=gcc CFLAGS=-std=gnu11 -O2 -g -Wall -Wextra -pthread -D_GNU_SOURCE LDLIBS=-lm",
+  "python": "3.14.7",
+  "cpufreq": {
+   "driver": [
+    "amd-pstate-epp"
+   ],
+   "governor": [
+    "performance"
+   ],
+   "epp": [
+    "performance"
+   ],
+   "boost": "1"
+  },
+  "smt_control": "on",
+  "clocksource": "tsc",
+  "cpuidle_states": [
+   {
+    "name": "POLL",
+    "latency_us": "0",
+    "disabled": "0"
+   },
+   {
+    "name": "C1",
+    "latency_us": "1",
+    "disabled": "0"
+   },
+   {
+    "name": "C2",
+    "latency_us": "18",
+    "disabled": "0"
+   },
+   {
+    "name": "C3",
+    "latency_us": "350",
+    "disabled": "0"
+   }
+  ],
+  "cgroup": {
+   "fs": "cgroup2fs",
+   "controllers": "cpuset cpu io memory hugetlb pids rdma misc dmem",
+   "user_delegated": "cpu memory pids"
+  },
+  "power": {
+   "ac_online": true,
+   "battery_status": "Charging",
+   "battery_capacity": "99"
+  },
+  "perf_event_paranoid": "2",
+  "glibc_tunables_env": null,
+  "loadavg": "2.14 2.24 1.48 3/2280 59609",
+  "git": {
+   "commit": "HEAD",
+   "dirty": true
+  },
+  "calib": {
+   "tsc_hz": 3194002374,
+   "iters_per_ns": 4.729
+  }
+ },
+ "tsc_hz": {
+  "tsc_hz": 3194001802,
+  "iters_per_ns": 4.72806
+ },
+ "test_locks": "PASS park               T=2  counter=2000000/2000000 overlaps=0 slow=42462 spin_acq=0 parks=40391 wakes=78190 68ms\nPASS park               T=8  counter=2000000/2000000 overlaps=0 slow=243490 spin_acq=0 parks=274750 wakes=358502 99ms\nPASS park               T=32 counter=2000000/2000000 overlaps=0 slow=386161 spin_acq=0 parks=524659 wakes=539420 153ms\nPASS spin               T=2  counter=2000000/2000000 overlaps=0 slow=115163 spin_acq=115163 parks=0 wakes=0 48ms\nPASS spin               T=8  counter=2000000/2000000 overlaps=0 slow=197733 spin_acq=197733 parks=0 wakes=0 96ms\nPASS spin               T=32 counter=2000000/2000000 overlaps=0 slow=235257 spin_acq=235257 parks=0 wakes=0 316ms\nPASS stp:100            T=2  counter=2000000/2000000 overlaps=0 slow=60952 spin_acq=32467 parks=28269 wakes=56406 66ms\nPASS stp:100            T=8  counter=2000000/2000000 overlaps=0 slow=296454 spin_acq=106324 parks=253879 wakes=308457 100ms\nPASS stp:100            T=32 counter=2000000/2000000 overlaps=0 slow=435378 spin_acq=115506 parks=504873 wakes=475486 148ms\nPASS stp:2000           T=2  counter=2000000/2000000 overlaps=0 slow=355248 spin_acq=355050 parks=275 wakes=473 83ms\nPASS stp:2000           T=8  counter=2000000/2000000 overlaps=0 slow=931230 spin_acq=773932 parks=293834 wakes=374668 230ms\nPASS stp:2000           T=32 counter=2000000/2000000 overlaps=0 slow=905408 spin_acq=585904 parks=706800 wakes=640281 264ms\nPASS pthread            T=2  counter=2000000/2000000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 84ms\nPASS pthread            T=8  counter=2000000/2000000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 129ms\nPASS pthread            T=32 counter=2000000/2000000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 209ms\nPASS pthread-adaptive   T=2  counter=2000000/2000000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 77ms\nPASS pthread-adaptive   T=8  counter=2000000/2000000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 154ms\nPASS pthread-adaptive   T=32 counter=2000000/2000000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 228ms\nALL PASSED: 18/18 runs passed\n",
+ "tsan": {
+  "returncode": 0,
+  "stdout_tail": "0/200000 overlaps=0 slow=129060 spin_acq=0 parks=120931 wakes=137592 125ms\nPASS park               T=8  counter=200000/200000 overlaps=0 slow=125294 spin_acq=0 parks=304378 wakes=168742 142ms\nPASS park               T=32 counter=200000/200000 overlaps=0 slow=124259 spin_acq=0 parks=386131 wakes=171713 160ms\nPASS spin               T=2  counter=200000/200000 overlaps=0 slow=57954 spin_acq=57954 parks=0 wakes=0 50ms\nPASS spin               T=8  counter=200000/200000 overlaps=0 slow=158314 spin_acq=158314 parks=0 wakes=0 93ms\nPASS spin               T=32 counter=200000/200000 overlaps=0 slow=181835 spin_acq=181835 parks=0 wakes=0 454ms\nPASS stp:100            T=2  counter=200000/200000 overlaps=0 slow=97565 spin_acq=36380 parks=10639 wakes=68316 74ms\nPASS stp:100            T=8  counter=200000/200000 overlaps=0 slow=136327 spin_acq=26557 parks=293064 wakes=164610 134ms\nPASS stp:100            T=32 counter=200000/200000 overlaps=0 slow=134456 spin_acq=25546 parks=389764 wakes=172705 158ms\nPASS stp:2000           T=2  counter=200000/200000 overlaps=0 slow=195088 spin_acq=194975 parks=146 wakes=257 64ms\nPASS stp:2000           T=8  counter=200000/200000 overlaps=0 slow=164192 spin_acq=126789 parks=220280 wakes=132303 129ms\nPASS stp:2000           T=32 counter=200000/200000 overlaps=0 slow=163885 spin_acq=121462 parks=360765 wakes=157589 158ms\nPASS pthread            T=2  counter=200000/200000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 111ms\nPASS pthread            T=8  counter=200000/200000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 142ms\nPASS pthread            T=32 counter=200000/200000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 160ms\nPASS pthread-adaptive   T=2  counter=200000/200000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 74ms\nPASS pthread-adaptive   T=8  counter=200000/200000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 118ms\nPASS pthread-adaptive   T=32 counter=200000/200000 overlaps=0 slow=0 spin_acq=0 parks=0 wakes=0 135ms\nALL PASSED: 18/18 runs passed\n",
+  "warnings": 0
+ },
+ "timer": {
+  "tool": "calib-timer",
+  "tsc_hz": 3194001803,
+  "tsc_ordered_pair_ns": {
+   "min": 10.02,
+   "median": 20.04
+  },
+  "tsc_unordered_pair_ns": {
+   "min": 0.31,
+   "median": 10.02
+  },
+  "clock_gettime_ns": 19.23,
+  "pause_ns": 13.96,
+  "futex_wake_nowaiter_ns": 295.2,
+  "uncontended_lock_unlock_ns": {
+   "park": 3.05,
+   "spin": 2.12,
+   "stp:1000": 3.39,
+   "pthread": 7.64,
+   "pthread-adaptive": 8.3,
+   "none": 3.38
+  }
+ },
+ "tsc_sync": [
+  {
+   "tool": "calib-tsc-sync",
+   "cpu_a": 2,
+   "cpu_b": 3,
+   "min_a_to_b_ns": 20.0,
+   "min_b_to_a_ns": 20.0,
+   "skew_estimate_ns": 0.0,
+   "one_way_ns": 20.0,
+   "consistent": true
+  },
+  {
+   "tool": "calib-tsc-sync",
+   "cpu_a": 2,
+   "cpu_b": 4,
+   "min_a_to_b_ns": 40.1,
+   "min_b_to_a_ns": 50.1,
+   "skew_estimate_ns": -5.0,
+   "one_way_ns": 45.1,
+   "consistent": true
+  },
+  {
+   "tool": "calib-tsc-sync",
+   "cpu_a": 2,
+   "cpu_b": 14,
+   "min_a_to_b_ns": 30.1,
+   "min_b_to_a_ns": 30.1,
+   "skew_estimate_ns": 0.0,
+   "one_way_ns": 30.1,
+   "consistent": true
+  }
+ ],
+ "work": {
+  "tool": "calib-work",
+  "iters_per_ns": 4.71727,
+  "points": [
+   {
+    "target_ns": 50,
+    "iters": 236,
+    "median_ns": 70.1,
+    "ratio": 1.403
+   },
+   {
+    "target_ns": 100,
+    "iters": 472,
+    "median_ns": 120.2,
+    "ratio": 1.202
+   },
+   {
+    "target_ns": 1000,
+    "iters": 4717,
+    "median_ns": 1011.9,
+    "ratio": 1.012
+   },
+   {
+    "target_ns": 10000,
+    "iters": 47173,
+    "median_ns": 10169.0,
+    "ratio": 1.017
+   },
+   {
+    "target_ns": 100000,
+    "iters": 471727,
+    "median_ns": 99526.4,
+    "ratio": 0.995
+   }
+  ]
+ },
+ "bench_runs": [
+  {
+   "tool": "bench",
+   "lock": "none",
+   "threads": 1,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194003044,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.71183,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 60.6,
+   "temp_c_after": 61.1,
+   "cpus": [
+    2
+   ],
+   "ops_total": 8185691,
+   "ops_measured": 7424043,
+   "throughput_ops_s": 3712021.5,
+   "counter_ok": true,
+   "cpu_user_s": 1.954,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 0.977,
+   "vcsw": 2,
+   "ivcsw": 20,
+   "lock_stats": {
+    "slow": 0,
+    "spin_acq": 0,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 100,
+     "think_ns": 100,
+     "active": 1,
+     "duration_ms": 2000,
+     "ops": 7424043,
+     "throughput_ops_s": 3712021.5,
+     "jain": 1.0,
+     "lat_ns": {
+      "n": 7424043,
+      "mean": 20.1,
+      "min": 10.0,
+      "p50": 20.0,
+      "p90": 20.0,
+      "p99": 20.0,
+      "p999": 20.0,
+      "max": 35646.8
+     },
+     "per_thread_ops": [
+      7424043
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "none",
+   "threads": 1,
+   "pin": "cores",
+   "timing": false,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194001812,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.72772,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 60.9,
+   "temp_c_after": 63.2,
+   "cpus": [
+    2
+   ],
+   "ops_total": 9596078,
+   "ops_measured": 8704420,
+   "throughput_ops_s": 4352210.0,
+   "counter_ok": true,
+   "cpu_user_s": 1.9631,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 0.982,
+   "vcsw": 2,
+   "ivcsw": 20,
+   "lock_stats": {
+    "slow": 0,
+    "spin_acq": 0,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 100,
+     "think_ns": 100,
+     "active": 1,
+     "duration_ms": 2000,
+     "ops": 8704420,
+     "throughput_ops_s": 4352210.0,
+     "jain": 1.0,
+     "per_thread_ops": [
+      8704420
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 4,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194001759,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.6798,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 62.2,
+   "temp_c_after": 59.8,
+   "cpus": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "ops_total": 1963637,
+   "ops_measured": 1782228,
+   "throughput_ops_s": 891114.0,
+   "counter_ok": true,
+   "cpu_user_s": 7.9551,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 3.978,
+   "vcsw": 3,
+   "ivcsw": 28,
+   "lock_stats": {
+    "slow": 318596,
+    "spin_acq": 318596,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 5992.954
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 0,
+     "active": 4,
+     "duration_ms": 2000,
+     "ops": 1782228,
+     "throughput_ops_s": 891114.0,
+     "jain": 0.9935,
+     "lat_ns": {
+      "n": 1782228,
+      "mean": 3391.0,
+      "min": 10.0,
+      "p50": 20.0,
+      "p90": 11100.5,
+      "p99": 54662.1,
+      "p999": 100347.8,
+      "max": 370935.3
+     },
+     "per_thread_ops": [
+      409584,
+      495250,
+      413170,
+      464224
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 4,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194002419,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.63352,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 58.9,
+   "temp_c_after": 58.6,
+   "cpus": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "ops_total": 1019152,
+   "ops_measured": 924516,
+   "throughput_ops_s": 462258.0,
+   "counter_ok": true,
+   "cpu_user_s": 7.9814,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 3.991,
+   "vcsw": 3,
+   "ivcsw": 34,
+   "lock_stats": {
+    "slow": 169906,
+    "spin_acq": 169906,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 5997.003
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 2000,
+     "think_ns": 0,
+     "active": 4,
+     "duration_ms": 2000,
+     "ops": 924516,
+     "throughput_ops_s": 462258.0,
+     "jain": 0.9995,
+     "lat_ns": {
+      "n": 924516,
+      "mean": 6514.5,
+      "min": 10.0,
+      "p50": 20.0,
+      "p90": 33742.9,
+      "p99": 75180.6,
+      "p999": 136255.1,
+      "max": 565550.0
+     },
+     "per_thread_ops": [
+      224847,
+      235158,
+      226842,
+      237669
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 4,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194002395,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.65513,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 57.9,
+   "temp_c_after": 58.1,
+   "cpus": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "ops_total": 522427,
+   "ops_measured": 475001,
+   "throughput_ops_s": 237500.5,
+   "counter_ok": true,
+   "cpu_user_s": 7.9805,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 3.99,
+   "vcsw": 2,
+   "ivcsw": 23,
+   "lock_stats": {
+    "slow": 85777,
+    "spin_acq": 85777,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 5998.173
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 4000,
+     "think_ns": 0,
+     "active": 4,
+     "duration_ms": 2000,
+     "ops": 475001,
+     "throughput_ops_s": 237500.5,
+     "jain": 0.9969,
+     "lat_ns": {
+      "n": 475001,
+      "mean": 12655.2,
+      "min": 10.0,
+      "p50": 20.0,
+      "p90": 46005.9,
+      "p99": 187871.8,
+      "p999": 321241.8,
+      "max": 631433.5
+     },
+     "per_thread_ops": [
+      126987,
+      122421,
+      116233,
+      109360
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 4,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194003648,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.70082,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 57.5,
+   "temp_c_after": 58.1,
+   "cpus": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "ops_total": 262241,
+   "ops_measured": 239931,
+   "throughput_ops_s": 119965.5,
+   "counter_ok": true,
+   "cpu_user_s": 7.9801,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 3.99,
+   "vcsw": 2,
+   "ivcsw": 30,
+   "lock_stats": {
+    "slow": 32700,
+    "spin_acq": 32700,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 5999.176
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 8000,
+     "think_ns": 0,
+     "active": 4,
+     "duration_ms": 2000,
+     "ops": 239931,
+     "throughput_ops_s": 119965.5,
+     "jain": 0.9833,
+     "lat_ns": {
+      "n": 239931,
+      "mean": 25027.2,
+      "min": 10.0,
+      "p50": 20.0,
+      "p90": 8355.3,
+      "p99": 529632.1,
+      "p999": 1105431.1,
+      "max": 4232591.3
+     },
+     "per_thread_ops": [
+      59511,
+      64558,
+      47549,
+      68313
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "park",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194001788,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.49092,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 57.4,
+   "temp_c_after": 65.1,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1580111,
+   "ops_measured": 1428865,
+   "throughput_ops_s": 714432.5,
+   "counter_ok": true,
+   "cpu_user_s": 4.5798,
+   "cpu_sys_s": 2.7172,
+   "cpu_util": 3.648,
+   "vcsw": 1386869,
+   "ivcsw": 20,
+   "lock_stats": {
+    "slow": 1112398,
+    "spin_acq": 0,
+    "parks": 1560732,
+    "wakes": 1386943,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1428865,
+     "throughput_ops_s": 714432.5,
+     "jain": 0.9981,
+     "lat_ns": {
+      "n": 1428865,
+      "mean": 8365.1,
+      "min": 20.0,
+      "p50": 7754.2,
+      "p90": 15829.4,
+      "p99": 43761.7,
+      "p999": 208390.3,
+      "max": 2278871.6
+     },
+     "per_thread_ops": [
+      173502,
+      178477,
+      165510,
+      171638,
+      190620,
+      183337,
+      186905,
+      178876
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "park",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 2,
+   "tsc_hz": 3194003041,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.47133,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 64.9,
+   "temp_c_after": 66.8,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1550379,
+   "ops_measured": 1408799,
+   "throughput_ops_s": 704399.5,
+   "counter_ok": true,
+   "cpu_user_s": 4.5322,
+   "cpu_sys_s": 2.6964,
+   "cpu_util": 3.614,
+   "vcsw": 1351206,
+   "ivcsw": 9,
+   "lock_stats": {
+    "slow": 1043054,
+    "spin_acq": 0,
+    "parks": 1530803,
+    "wakes": 1351279,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1408799,
+     "throughput_ops_s": 704399.5,
+     "jain": 0.9966,
+     "lat_ns": {
+      "n": 1408799,
+      "mean": 8515.1,
+      "min": 20.0,
+      "p50": 7794.3,
+      "p90": 15909.5,
+      "p99": 49853.1,
+      "p999": 262251.2,
+      "max": 2329275.2
+     },
+     "per_thread_ops": [
+      155968,
+      183156,
+      168561,
+      168821,
+      188351,
+      181735,
+      185432,
+      176775
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "park",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 3,
+   "tsc_hz": 3194002408,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.42565,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 65.8,
+   "temp_c_after": 67.2,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1498542,
+   "ops_measured": 1355509,
+   "throughput_ops_s": 677754.5,
+   "counter_ok": true,
+   "cpu_user_s": 4.4644,
+   "cpu_sys_s": 2.5166,
+   "cpu_util": 3.49,
+   "vcsw": 1275965,
+   "ivcsw": 95,
+   "lock_stats": {
+    "slow": 953450,
+    "spin_acq": 0,
+    "parks": 1473535,
+    "wakes": 1276071,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1355509,
+     "throughput_ops_s": 677754.5,
+     "jain": 0.9971,
+     "lat_ns": {
+      "n": 1355509,
+      "mean": 8927.4,
+      "min": 20.0,
+      "p50": 7754.2,
+      "p90": 15989.7,
+      "p99": 62036.0,
+      "p999": 337271.8,
+      "max": 2059630.3
+     },
+     "per_thread_ops": [
+      164767,
+      171861,
+      164142,
+      163132,
+      183618,
+      175273,
+      178756,
+      153960
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "park",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 4,
+   "tsc_hz": 3194002386,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.50129,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 66.5,
+   "temp_c_after": 67.4,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1562743,
+   "ops_measured": 1419459,
+   "throughput_ops_s": 709729.5,
+   "counter_ok": true,
+   "cpu_user_s": 4.6139,
+   "cpu_sys_s": 2.638,
+   "cpu_util": 3.626,
+   "vcsw": 1372188,
+   "ivcsw": 10,
+   "lock_stats": {
+    "slow": 1098421,
+    "spin_acq": 0,
+    "parks": 1548528,
+    "wakes": 1372298,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1419459,
+     "throughput_ops_s": 709729.5,
+     "jain": 0.9984,
+     "lat_ns": {
+      "n": 1419459,
+      "mean": 8436.0,
+      "min": 20.0,
+      "p50": 7794.3,
+      "p90": 15909.5,
+      "p99": 43441.1,
+      "p999": 209672.7,
+      "max": 3405953.6
+     },
+     "per_thread_ops": [
+      162758,
+      180180,
+      175185,
+      174566,
+      184214,
+      181864,
+      186521,
+      174171
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "park",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 5,
+   "tsc_hz": 3194001788,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.44948,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 66.2,
+   "temp_c_after": 68.8,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1491914,
+   "ops_measured": 1348687,
+   "throughput_ops_s": 674343.5,
+   "counter_ok": true,
+   "cpu_user_s": 4.4117,
+   "cpu_sys_s": 2.5676,
+   "cpu_util": 3.49,
+   "vcsw": 1287875,
+   "ivcsw": 139,
+   "lock_stats": {
+    "slow": 999934,
+    "spin_acq": 0,
+    "parks": 1461864,
+    "wakes": 1288022,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1348687,
+     "throughput_ops_s": 674343.5,
+     "jain": 0.9987,
+     "lat_ns": {
+      "n": 1348687,
+      "mean": 8964.8,
+      "min": 20.0,
+      "p50": 7794.3,
+      "p90": 15909.5,
+      "p99": 55624.0,
+      "p999": 317394.6,
+      "max": 4284801.6
+     },
+     "per_thread_ops": [
+      159166,
+      165801,
+      159908,
+      168443,
+      176634,
+      175220,
+      173199,
+      170316
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "stp:1000",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194002388,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.47855,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 68.0,
+   "temp_c_after": 68.9,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1803014,
+   "ops_measured": 1632511,
+   "throughput_ops_s": 816255.5,
+   "counter_ok": true,
+   "cpu_user_s": 6.2507,
+   "cpu_sys_s": 2.8267,
+   "cpu_util": 4.539,
+   "vcsw": 1556799,
+   "ivcsw": 72,
+   "lock_stats": {
+    "slow": 1544479,
+    "spin_acq": 1496581,
+    "parks": 1605981,
+    "wakes": 1556977,
+    "spin_ms": 1045.565
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1632511,
+     "throughput_ops_s": 816255.5,
+     "jain": 0.997,
+     "lat_ns": {
+      "n": 1632511,
+      "mean": 7038.2,
+      "min": 20.0,
+      "p50": 723.5,
+      "p90": 753.6,
+      "p99": 80630.8,
+      "p999": 1533754.3,
+      "max": 8996020.8
+     },
+     "per_thread_ops": [
+      190330,
+      214197,
+      188938,
+      220149,
+      192030,
+      211886,
+      207334,
+      207647
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "stp:1000",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 2,
+   "tsc_hz": 3194003021,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.41403,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 67.9,
+   "temp_c_after": 69.0,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1817136,
+   "ops_measured": 1646948,
+   "throughput_ops_s": 823474.0,
+   "counter_ok": true,
+   "cpu_user_s": 6.3259,
+   "cpu_sys_s": 2.8563,
+   "cpu_util": 4.591,
+   "vcsw": 1585136,
+   "ivcsw": 37,
+   "lock_stats": {
+    "slow": 1570696,
+    "spin_acq": 1530117,
+    "parks": 1629020,
+    "wakes": 1585278,
+    "spin_ms": 1065.69
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1646948,
+     "throughput_ops_s": 823474.0,
+     "jain": 0.9967,
+     "lat_ns": {
+      "n": 1646948,
+      "mean": 6963.7,
+      "min": 20.0,
+      "p50": 723.5,
+      "p90": 753.6,
+      "p99": 60112.3,
+      "p999": 1667124.0,
+      "max": 10309831.2
+     },
+     "per_thread_ops": [
+      179894,
+      213114,
+      204543,
+      225276,
+      206090,
+      208347,
+      207974,
+      201710
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "stp:1000",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 3,
+   "tsc_hz": 3194002388,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.47005,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 68.0,
+   "temp_c_after": 69.1,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1860383,
+   "ops_measured": 1688052,
+   "throughput_ops_s": 844026.0,
+   "counter_ok": true,
+   "cpu_user_s": 6.4417,
+   "cpu_sys_s": 2.9602,
+   "cpu_util": 4.701,
+   "vcsw": 1640845,
+   "ivcsw": 7,
+   "lock_stats": {
+    "slow": 1633066,
+    "spin_acq": 1604798,
+    "parks": 1672817,
+    "wakes": 1640896,
+    "spin_ms": 1105.911
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1688052,
+     "throughput_ops_s": 844026.0,
+     "jain": 0.997,
+     "lat_ns": {
+      "n": 1688052,
+      "mean": 6740.1,
+      "min": 20.0,
+      "p50": 723.5,
+      "p90": 743.6,
+      "p99": 23644.0,
+      "p999": 1841531.2,
+      "max": 9413583.4
+     },
+     "per_thread_ops": [
+      191967,
+      221085,
+      207613,
+      222925,
+      205192,
+      220127,
+      222476,
+      196667
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "stp:1000",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 4,
+   "tsc_hz": 3194001787,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.5322,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 67.9,
+   "temp_c_after": 69.1,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1844048,
+   "ops_measured": 1671886,
+   "throughput_ops_s": 835943.0,
+   "counter_ok": true,
+   "cpu_user_s": 6.325,
+   "cpu_sys_s": 2.9516,
+   "cpu_util": 4.638,
+   "vcsw": 1610860,
+   "ivcsw": 8,
+   "lock_stats": {
+    "slow": 1605071,
+    "spin_acq": 1571414,
+    "parks": 1641800,
+    "wakes": 1610918,
+    "spin_ms": 1110.638
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1671886,
+     "throughput_ops_s": 835943.0,
+     "jain": 0.9962,
+     "lat_ns": {
+      "n": 1671886,
+      "mean": 6840.4,
+      "min": 20.0,
+      "p50": 743.6,
+      "p90": 763.6,
+      "p99": 63639.0,
+      "p999": 1451680.8,
+      "max": 9372428.1
+     },
+     "per_thread_ops": [
+      194385,
+      207731,
+      214300,
+      216723,
+      206071,
+      232386,
+      212887,
+      187403
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "stp:1000",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 5,
+   "tsc_hz": 3194001756,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.45377,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 67.9,
+   "temp_c_after": 69.5,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1790852,
+   "ops_measured": 1621558,
+   "throughput_ops_s": 810779.0,
+   "counter_ok": true,
+   "cpu_user_s": 6.2344,
+   "cpu_sys_s": 2.7756,
+   "cpu_util": 4.505,
+   "vcsw": 1538653,
+   "ivcsw": 155,
+   "lock_stats": {
+    "slow": 1524386,
+    "spin_acq": 1468862,
+    "parks": 1595420,
+    "wakes": 1538805,
+    "spin_ms": 1035.159
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1621558,
+     "throughput_ops_s": 810779.0,
+     "jain": 0.9984,
+     "lat_ns": {
+      "n": 1621558,
+      "mean": 7100.2,
+      "min": 20.0,
+      "p50": 723.5,
+      "p90": 753.6,
+      "p99": 99706.6,
+      "p999": 1431162.3,
+      "max": 10415172.7
+     },
+     "per_thread_ops": [
+      200099,
+      201999,
+      203623,
+      215340,
+      187433,
+      209084,
+      207946,
+      196034
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 4,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194003049,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.68107,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 68.6,
+   "temp_c_after": 66.0,
+   "cpus": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "ops_total": 1884937,
+   "ops_measured": 1715716,
+   "throughput_ops_s": 857858.0,
+   "counter_ok": true,
+   "cpu_user_s": 7.9725,
+   "cpu_sys_s": 0.002,
+   "cpu_util": 3.987,
+   "vcsw": 4,
+   "ivcsw": 41,
+   "lock_stats": {
+    "slow": 1712193,
+    "spin_acq": 1712193,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 4217.269
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 4,
+     "duration_ms": 2000,
+     "ops": 1715716,
+     "throughput_ops_s": 857858.0,
+     "jain": 0.9997,
+     "lat_ns": {
+      "n": 1715716,
+      "mean": 2492.8,
+      "min": 20.0,
+      "p50": 280.8,
+      "p90": 5830.6,
+      "p99": 17432.4,
+      "p999": 26529.4,
+      "max": 203972.3
+     },
+     "per_thread_ops": [
+      436832,
+      418023,
+      434238,
+      426623
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 4,
+   "pin": "cores",
+   "timing": false,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194001783,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.6151,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 64.9,
+   "temp_c_after": 63.9,
+   "cpus": [
+    2,
+    4,
+    6,
+    8
+   ],
+   "ops_total": 1934981,
+   "ops_measured": 1757912,
+   "throughput_ops_s": 878956.0,
+   "counter_ok": true,
+   "cpu_user_s": 7.9867,
+   "cpu_sys_s": 0.0,
+   "cpu_util": 3.993,
+   "vcsw": 2,
+   "ivcsw": 27,
+   "lock_stats": {
+    "slow": 1756873,
+    "spin_acq": 1756873,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 4280.793
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 4,
+     "duration_ms": 2000,
+     "ops": 1757912,
+     "throughput_ops_s": 878956.0,
+     "jain": 0.9998,
+     "per_thread_ops": [
+      436194,
+      445888,
+      432205,
+      443625
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "spin",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194001768,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.58175,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 62.9,
+   "temp_c_after": 63.2,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1808931,
+   "ops_measured": 1641119,
+   "throughput_ops_s": 820559.5,
+   "counter_ok": true,
+   "cpu_user_s": 15.9691,
+   "cpu_sys_s": 0.001,
+   "cpu_util": 7.985,
+   "vcsw": 3,
+   "ivcsw": 48,
+   "lock_stats": {
+    "slow": 1635548,
+    "spin_acq": 1635548,
+    "parks": 0,
+    "wakes": 0,
+    "spin_ms": 12244.842
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1641119,
+     "throughput_ops_s": 820559.5,
+     "jain": 0.9984,
+     "lat_ns": {
+      "n": 1641119,
+      "mean": 7506.1,
+      "min": 20.0,
+      "p50": 190.7,
+      "p90": 22521.9,
+      "p99": 78066.0,
+      "p999": 545021.3,
+      "max": 1977817.3
+     },
+     "per_thread_ops": [
+      208187,
+      208755,
+      204068,
+      210942,
+      191252,
+      205378,
+      194072,
+      218465
+     ]
+    }
+   ]
+  },
+  {
+   "tool": "bench",
+   "lock": "park",
+   "threads": 8,
+   "pin": "cores",
+   "timing": true,
+   "warmup_ms": 200,
+   "duration_ms": 2000,
+   "window_ms": 10,
+   "cs_lines": 1,
+   "hold_long_ns": 0,
+   "hold_long_p": 0,
+   "think_exp": false,
+   "seed": 1,
+   "tsc_hz": 3194002404,
+   "iters_per_ns": 4.72806,
+   "iters_per_ns_after": 4.53545,
+   "compiler": "16.2.1 20260810",
+   "temp_c_before": 62.4,
+   "temp_c_after": 67.6,
+   "cpus": [
+    2,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14,
+    0
+   ],
+   "ops_total": 1589775,
+   "ops_measured": 1443401,
+   "throughput_ops_s": 721700.5,
+   "counter_ok": true,
+   "cpu_user_s": 4.5885,
+   "cpu_sys_s": 2.7642,
+   "cpu_util": 3.676,
+   "vcsw": 1412490,
+   "ivcsw": 10,
+   "lock_stats": {
+    "slow": 1173724,
+    "spin_acq": 0,
+    "parks": 1562654,
+    "wakes": 1412562,
+    "spin_ms": 0.0
+   },
+   "phases": [
+    {
+     "idx": 0,
+     "hold_ns": 1000,
+     "think_ns": 1000,
+     "active": 8,
+     "duration_ms": 2000,
+     "ops": 1443401,
+     "throughput_ops_s": 721700.5,
+     "jain": 0.9989,
+     "lat_ns": {
+      "n": 1443401,
+      "mean": 8256.4,
+      "min": 20.0,
+      "p50": 7794.3,
+      "p90": 15829.4,
+      "p99": 32941.4,
+      "p999": 171200.6,
+      "max": 3457790.8
+     },
+     "per_thread_ops": [
+      182352,
+      182001,
+      175391,
+      183928,
+      186313,
+      182904,
+      183748,
+      166764
+     ]
+    }
+   ]
+  }
+ ],
+ "wakebench": {
+  "tool": "wakebench",
+  "label": "",
+  "placement": "other-core",
+  "sleeper_cpu": 2,
+  "waker_cpu": 4,
+  "idle_us": 100,
+  "load": false,
+  "samples": 2000,
+  "warmup": 200,
+  "valid": 2000,
+  "missed": 0,
+  "tsc_hz": 3194003069,
+  "wake_ns": {
+   "mean": 6181.7,
+   "min": 3246.1,
+   "p50": 4728.9,
+   "p90": 4919.2,
+   "p99": 7914.8,
+   "p999": 472425.3,
+   "max": 961622.1
+  },
+  "waker_syscall_ns": {
+   "p50": 881.7,
+   "p99": 1713.2
+  },
+  "blocked_ns": {
+   "p50": 109054.4,
+   "p99": 120435.7
+  },
+  "sleeper_cpuidle": [
+   {
+    "state": "POLL",
+    "entries": 6,
+    "time_us": 222
+   },
+   {
+    "state": "C1",
+    "entries": 87,
+    "time_us": 1970
+   },
+   {
+    "state": "C2",
+    "entries": 2317,
+    "time_us": 230350
+   },
+   {
+    "state": "C3",
+    "entries": 41,
+    "time_us": 4271
+   }
+  ]
+ },
+ "checks": [
+  {
+   "check": "Lock correctness (counter exact, no overlap, all locks, T=2/8/32)",
+   "criterion": "all runs PASS",
+   "measured": "ALL PASSED: 18/18 runs passed",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "ThreadSanitizer",
+   "criterion": "exit 0 and zero TSan warnings",
+   "measured": "exit=0, warnings=0",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "Timer overhead measured",
+   "criterion": "recorded (no threshold)",
+   "measured": "ordered TSC pair median 20.0 ns (min 10.0); clock_gettime 19.2 ns; pause 14.0 ns; futex_wake (no waiter) 295 ns",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "TSC consistent across CPUs",
+   "criterion": "both ping-pong minima > 0 for every pair",
+   "measured": "2->3 skew 0.0 ns, one-way 20.0 ns; 2->4 skew -5.0 ns, one-way 45.1 ns; 2->14 skew 0.0 ns, one-way 30.1 ns",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "Calibrated work loop accurate and not optimised away",
+   "criterion": "|measured - timer overhead - target| <= 5% of target + 10 ns, for targets >= 100 ns",
+   "measured": "50ns->70ns, 100ns->120ns, 1000ns->1012ns, 10000ns->10169ns, 100000ns->99526ns",
+   "pass": true,
+   "note": "tolerance revised after first run (timer uncertainty); boost on adds frequency drift"
+  },
+  {
+   "check": "Single-thread no-lock throughput sensible",
+   "criterion": "0.7 <= throughput / (1 / (hold + think)) <= 1.0",
+   "measured": "3.71 M ops/s = 0.74 of ideal (0.87 without per-op timestamps)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "Throughput proportional to hold time (spin, T=4, think 0)",
+   "criterion": "throughput x hold in [0.80, 1.0] at every hold time",
+   "measured": "1000ns:0.891, 2000ns:0.925, 4000ns:0.950, 8000ns:0.960",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "Run-to-run variation (park, T=8, hold 1 us, think 1 us, 5 runs)",
+   "criterion": "throughput CV <= 5% (proposed threshold)",
+   "measured": "throughput CV 2.7%, p99 CV 15.6%; runs in order: 714k, 704k, 678k, 710k, 674k ops/s",
+   "pass": true,
+   "note": "p99 CV is reported, not thresholded"
+  },
+  {
+   "check": "Run-to-run variation (stp:1000, T=8, hold 1 us, think 1 us, 5 runs)",
+   "criterion": "throughput CV <= 5% (proposed threshold)",
+   "measured": "throughput CV 1.7%, p99 CV 43.0%; runs in order: 816k, 823k, 844k, 836k, 811k ops/s",
+   "pass": true,
+   "note": "p99 CV is reported, not thresholded"
+  },
+  {
+   "check": "Frequency/thermal drift during repeat runs",
+   "criterion": "recorded (no threshold)",
+   "measured": "work-rate change after each run: -5.0%, -5.4%, -6.4%, -4.8%, -5.9%, -5.3%, -6.6%, -5.5%, -4.1%, -5.8%; Tctl after runs: 65, 67, 67, 67, 69, 69, 69, 69, 69, 70 C",
+   "pass": true,
+   "note": "a negative change means the core clock was lower after the run than at calibration"
+  },
+  {
+   "check": "Timestamp overhead on contended throughput",
+   "criterion": "recorded (no threshold)",
+   "measured": "spin T=4: with timing 0.858 M/s, without 0.879 M/s (+2.4%)",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "Context switches: spin-only near zero, park-only high (T=8 < 16 CPUs)",
+   "criterion": "voluntary switches: spin < 0.001 per op and park > 0.1 per op",
+   "measured": "voluntary: spin 0.00000/op (3), park 0.979/op; involuntary: spin 48, park 10",
+   "pass": true,
+   "note": "criterion changed to voluntary-only after first run; first run also exposed 1 ms main-thread sleep chunks (fixed)"
+  },
+  {
+   "check": "Shared counter == total acquisitions in every bench run",
+   "criterion": "counter_ok true for all runs",
+   "measured": "20/20",
+   "pass": true,
+   "note": ""
+  },
+  {
+   "check": "No false sharing between lock words and per-thread data",
+   "criterion": "_Static_assert on lock and tstate layout; per-thread buffers allocated by their owner",
+   "measured": "compile-time asserts hold (build succeeded); PAD_BYTES=128",
+   "pass": true,
+   "note": "Layout argument, not a measurement; perf c2c not installed"
+  },
+  {
+   "check": "Wake-up benchmark: wakes land on a blocked sleeper",
+   "criterion": "missed < 1% (other-core, idle 100 us)",
+   "measured": "missed 0.00%; sleeper idle-state entries {'POLL': 6, 'C1': 87, 'C2': 2317, 'C3': 41}",
+   "pass": true,
+   "note": ""
+  }
+ ],
+ "elapsed_s": 57.4
+}
