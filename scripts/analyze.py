@@ -749,7 +749,8 @@ def analyze_e7():
                     continue
                 pooled = stats.merge(run_hist("e7", r)[0] for r in rs)
                 ex = [run_extras(r, [0]) for r in rs]
-                cg = [e["cgroup"] for e in ex if e["cgroup"]]
+                cg = [dict(e["cgroup"], dur_s=r["result"]["duration_ms"] / 1e3)
+                      for e, r in zip(ex, rs) if e["cgroup"]]
                 ta = [e["lock_report"]["ta"] for e in ex if e["lock_report"] and "ta" in e["lock_report"]]
                 rows[l] = {"runs": len(rs), "thr_mean": stats.mean([r["result"]["throughput_ops_s"] for r in rs]),
                            "p50": stats.hist_quantile(pooled, 0.5), "p99": stats.hist_quantile(pooled, 0.99),
@@ -762,8 +763,8 @@ def analyze_e7():
                            "budget_mean_ns": mean_of([e["budget_mean_ns"] for e in ex]),
                            "throttled_periods_frac": mean_of([c["nr_throttled"] / c["nr_periods"] for c in cg if c["nr_periods"]]),
                            # cpu.stat throttled_usec is summed over CPUs
-                           "throttled_cpu_ms_per_s": mean_of([c["throttled_usec"] / 1e3 / 2.0 for c in cg]),
-                           "usage_cores": mean_of([c["usage_usec"] / 2e6 for c in cg]),
+                           "throttled_cpu_ms_per_s": mean_of([c["throttled_usec"] / 1e3 / c["dur_s"] for c in cg]),
+                           "usage_cores": mean_of([c["usage_usec"] / 1e6 / c["dur_s"] for c in cg]),
                            "ta_triggers": mean_of([x["triggers"] for x in ta]) if ta else None,
                            "ta_park_ms": mean_of([x["park_ms"] for x in ta]) if ta else None,
                            "_tail": stats.TailSet([run_hist("e7", r)[0] for r in rs], 0.999)}
