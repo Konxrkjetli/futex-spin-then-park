@@ -1,0 +1,107 @@
+{
+ "rule": "RESEARCH_PHASE.md 5.8: per policy, most T=4 holds within both H3 bounds; then highest worst-case throughput ratio (0.01 tie); then lowest worst-case p99.9 ratio; then smaller beta. exp3 uses hedge's beta. ta base = better of the two winners (full tie -> ada); ta detector parameters fixed by design.",
+ "tuning_session": "t3",
+ "ada": {
+  "beta": 8.0
+ },
+ "hedge": {
+  "beta": 8.0
+ },
+ "exp3": {
+  "beta": 8.0
+ },
+ "ta": {
+  "base": "ada",
+  "beta": 8.0,
+  "poll_us": 1000,
+  "theta": 0.9,
+  "hold_min": 1,
+  "hold_max": 64
+ },
+ "common": {
+  "w0_ns": 4728.9,
+  "arms_ns": [
+   0,
+   2350,
+   4750,
+   9450,
+   37850,
+   151300
+  ],
+  "window": 1024,
+  "alpha": 0.0625,
+  "wcap_ns": 1000000.0
+ },
+ "scores": {
+  "ada-b1": {
+   "kind": "ada",
+   "beta": 1.0,
+   "n_ok": 2,
+   "min_thr_ratio": 0.6713411576987816,
+   "max_tail_ratio": 37.284621612660395
+  },
+  "ada-b2": {
+   "kind": "ada",
+   "beta": 2.0,
+   "n_ok": 3,
+   "min_thr_ratio": 0.972630451038303,
+   "max_tail_ratio": 8.342551735110739
+  },
+  "ada-b4": {
+   "kind": "ada",
+   "beta": 4.0,
+   "n_ok": 3,
+   "min_thr_ratio": 0.972470571613301,
+   "max_tail_ratio": 7.657532396326604
+  },
+  "ada-b8": {
+   "kind": "ada",
+   "beta": 8.0,
+   "n_ok": 4,
+   "min_thr_ratio": 0.9822325374665145,
+   "max_tail_ratio": 1.0439641616383253
+  },
+  "ada-b16": {
+   "kind": "ada",
+   "beta": 16.0,
+   "n_ok": 4,
+   "min_thr_ratio": 0.986200479299345,
+   "max_tail_ratio": 1.0664211237501768
+  },
+  "hedge-b1": {
+   "kind": "hedge",
+   "beta": 1.0,
+   "n_ok": 2,
+   "min_thr_ratio": 0.8751749303411717,
+   "max_tail_ratio": 228.1344699668402
+  },
+  "hedge-b2": {
+   "kind": "hedge",
+   "beta": 2.0,
+   "n_ok": 2,
+   "min_thr_ratio": 0.8830995358863067,
+   "max_tail_ratio": 208.29668942926236
+  },
+  "hedge-b4": {
+   "kind": "hedge",
+   "beta": 4.0,
+   "n_ok": 2,
+   "min_thr_ratio": 0.8848770370246596,
+   "max_tail_ratio": 116.90120012937042
+  },
+  "hedge-b8": {
+   "kind": "hedge",
+   "beta": 8.0,
+   "n_ok": 2,
+   "min_thr_ratio": 0.9114100534294702,
+   "max_tail_ratio": 6.2874935279840996
+  },
+  "hedge-b16": {
+   "kind": "hedge",
+   "beta": 16.0,
+   "n_ok": 1,
+   "min_thr_ratio": 0.9248353043892372,
+   "max_tail_ratio": 4.856292249338873
+  }
+ }
+}

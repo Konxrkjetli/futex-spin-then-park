@@ -38,6 +38,9 @@ Detailed checklist and event log: [`PROGRESS.md`](PROGRESS.md). Plan: [`TIMELINE
 | `RESEARCH_PHASE.md` | Research questions, hypotheses (proposed), methods, stats plan |
 | `docs/validation.md` | Latest harness validation report (generated, do not edit) |
 | `results/` | Raw data, append-only: `manifests/`, `validation/`, and experiment data from Phase 2 on |
+| `config/budgets.json` | Static spin budgets chosen from E1 (Phase 2) |
+| `config/policy.json` | Adaptive-policy parameters chosen by the tuning session T3 (Phase 3, tag `prereg-v1-p3`) |
+| `docs/results/*.md` | Generated result tables, one per experiment (E1–E8, T3) |
 
 ---
 
@@ -65,7 +68,17 @@ Example runs:
 # Wake-up latency: sleeper on CPU 2, waker on CPU 4, 1 ms idle before each wake
 ./build/wakebench --sleeper 2 --waker 4 --idle-us 1000 --samples 20000 --out wake.csv
 
-./build/bench --list-locks     # park, spin, stp:<spin_ns>, pthread, pthread-adaptive, none
+./build/bench --list-locks     # park, spin, stp:<spin_ns>, pthread, pthread-adaptive, none,
+                               # ada, hedge, exp3, ta (adaptive, Phase 3)
+
+# Adaptive locks take optional key=value parameters (defaults in src/policy.c)
+./build/bench --lock hedge:beta=4 --threads 4 --hold-ns 1000 --think-ns 1000
+
+# Throttled run: own transient scope with a CPU quota (no sudo; cpu controller is delegated)
+systemd-run --user --scope --quiet -p CPUQuota=200% -p CPUQuotaPeriodSec=100ms -- \
+    ./build/bench --lock ta --threads 16 --hold-ns 1000 --think-ns 1000
+
+./build/calib policy           # cost of one policy decision / update
 ```
 
 Requirements: gcc, make, Python 3 (standard library only for Phase 1). Phase 4
@@ -85,6 +98,9 @@ src/
   lock_futex.c      park-only and static spin-then-park locks (three-state futex lock)
   lock_spin.c       spin-only lock (TTAS + bounded exponential backoff)
   lock_pthread.c    glibc default and adaptive mutex wrappers
+  policy.h, policy.c  spin-budget policies: Policy A (ada), Policy B (hedge), EXP3 (Phase 3)
+  lock_adaptive.c   adaptive spin-then-park locks + throttle-aware helper (Phase 3)
+  cgroup.h, cgroup.c  read cpu.max / cpu.stat of the process's own cgroup (Phase 3)
   topo.h, topo.c    CPU topology, cores-first pinning order, SMT sibling lookup
   hist.h, hist.c    log-linear latency histogram (<= 0.8% bucket width)
   bench.c           lock benchmark harness
@@ -95,6 +111,10 @@ tests/
 scripts/
   manifest.py       machine manifest collector
   validate.py       harness validation suite -> docs/validation.md
+  experiments.py    pre-registered experiment matrix (E1-E8, T3)
+  run_experiments.py  runner: seeded random order, resumable, clean-code check
+  choose_budgets.py, choose_policy.py  pre-declared selection rules (E1 -> budgets, T3 -> policy)
+  stats.py, analyze.py  statistics and per-experiment analysis
 results/            raw data (append-only)
 docs/               generated reports, later the paper draft
 ```
@@ -117,6 +137,10 @@ its line, including through the adjacent-line prefetcher.
 | `pthread` | glibc default mutex | External baseline |
 | `pthread-adaptive` | glibc `PTHREAD_MUTEX_ADAPTIVE_NP` | External baseline; glibc spins a bounded count, then blocks |
 | `none` | No-op | Harness overhead baseline, single thread only |
+| `ada[:k=v,..]` | Policy A, estimate-and-set (Phase 3) | Spins β × (measured wake latency), then parks |
+| `hedge[:k=v,..]` | Policy B, Hedge over 6 budgets (Phase 3) | Draws a budget per slow path; learns from the counterfactual cost of every budget |
+| `exp3[:k=v,..]` | EXP3 over the same budgets (Phase 3, exploratory) | As hedge, but learns only from the budget it used |
+| `ta[:k=v,..]` | Throttle-aware (Phase 3) | A base policy (ada or hedge); budget forced to 0 while cgroup throttling is recent or imminent |
 
 **Three-state futex lock** (`src/lock_futex.c`), after Drepper's "Futexes Are
 Tricky" (mutex3; to be checked against the paper itself, per `RESEARCH_PHASE.md` §4):
@@ -202,10 +226,15 @@ and after, and re-measures the work-loop rate right after the run
 | `lock_stats` | Summed slow-path counters: `slow`, `spin_acq`, `parks`, `wakes`, `spin_ms` |
 | `phases[]` | Per phase: `ops`, `throughput_ops_s`, `jain` (fairness over active threads), `lat_ns` {mean, min, p50, p90, p99, p999, max}, `per_thread_ops` |
 | `tsc_hz`, `iters_per_ns`, `iters_per_ns_after` | Clock calibration and post-run work rate (drift) |
+| `lock_stats` (Phase 3 fields) | `budget_mean_ns`, `forced` (throttle-forced parks), `wake_n`/`wake_mean_ns` (wake latency measured inside the lock), `arm_n`, `cost_real_ms`, `cost_arm_ms` (policy cost paid vs each fixed budget) |
+| `cgroup` | `cpu_max` and deltas of `usage_usec`, `nr_periods`, `nr_throttled`, `throttled_usec` (summed over CPUs) over the measured window |
+| `lock_report` | Adaptive locks: policy configuration; `ta`: detector counters (triggers, throttle events, back-offs, park time) over the process lifetime |
+| `phases[].per_thread_p99_ns`, `per_thread_p999_ns`, `per_thread_max_ns` | Per-thread tail latency (−1 for a thread with no acquisition in that phase) |
 | `temp_c_before`, `temp_c_after` | CPU temperature around the run |
 
 Optional CSVs: `--hist-out` (phase, lo_ns, hi_ns, count) and `--windows-out`
-(window, t_ms, phase, ops).
+(window, t_ms, phase, ops, slow, parks, forced, budget_ns_sum; the last four
+are slow-path counters, nonzero budgets only for adaptive locks).
 
 ### Wake-up benchmark (`src/wakebench.c`)
 
@@ -310,6 +339,14 @@ Full snapshot: `results/manifests/` (`make manifest`).
 | B11 | Cores-first pinning, core 0 last | Spreads threads over physical cores before SMT; keeps off the IRQ-heavy CPU 0 |
 | B12 | Python scripts use only the standard library so far | pandas/scipy are not installed; analysis in Phase 4 will need them |
 | B13 | Drift covariates recorded in every run | Validation showed 4–7% clock drop under load; the analysis can account for it |
+| B14 | Adaptive locks in their own file; `lock_futex.c` untouched | The static locks run exactly the Phase 2 code, so E6/E7 static rows are comparable with E4/E5 |
+| B15 | One cost model for both policies (ski rental: spin time, or budget + C if parked; C = β × measured wake latency) | Matches `BUILD_PHASE.md` §5.4; β is the single tuned knob and means "a park costs β wake latencies" |
+| B16 | Wake latency measured inside the lock (releaser stamps the TSC just before `FUTEX_WAKE`) | The planned estimate-and-set input; costs one TSC read and one store on the wake path, after the word is released |
+| B17 | Policy update in `unlock`, after the release | Bookkeeping never lengthens a critical section |
+| B18 | Per-thread policy state, keyed by lock | No shared writes. A thread that alternates between locks resets its state (not an issue for the benchmark's one lock) |
+| B19 | Hedge arms = {0, b1..b4, 32·m}; costs shifted by the round minimum and divided by C | The arms include every static budget, so "best fixed arm" lines up with the static family. The first, range-normalised version could not separate arms (D15) |
+| B20 | Throttle detector: own cgroup's `cpu.stat` polled at 1 ms; trigger on a new throttle event or usage ≥ 90% of quota; park mode for 1–64 periods with doubling | "Recent or imminent" per `BUILD_PHASE.md` §5.5; doubling limits repeated probes that would burn quota |
+| B21 | Throttled runs in a fresh `systemd-run --user --scope` per run | No sudo; counters start from zero per run; the scope's `cpu.max` is exactly the quota under test |
 
 ---
 
@@ -524,3 +561,100 @@ misleading in long-hold phases.**
 - **Run-to-run stability:** median throughput CV 1.0% (max 4.6%) across E2
   cells. Drift: the work loop ran 3.0% slower after a run on average (worst
   −13.7%), with boost on.
+
+---
+
+## 12. Phase 3: adaptive locks and throttling
+
+### 12.1 What was built
+
+All four adaptive locks are the three-state futex lock of §5. The only
+difference is that a policy chooses the spin budget on every slow path
+(`src/lock_adaptive.c`, `src/policy.c`). The uncontended fast path is the
+same single CAS.
+
+**Cost model (shared).** A waiter that would get the lock by spinning after
+*w* ns pays, with budget *b*:
+
+- *w* if *w* ≤ *b* (it spun until the lock came free);
+- *b* + C otherwise (it spun, gave up, and paid the cost of blocking).
+
+C = β × Ŵ, where Ŵ is the thread's running average (EWMA, α = 1/16) of the
+wake-up latency **measured inside the lock**:
+
+- On an unlock that has to wake someone, the releaser stamps the TSC just
+  before `FUTEX_WAKE`.
+- The woken waiter subtracts that stamp when it returns.
+- The prior is the E1 reference median (4.73 µs).
+
+This is the classic ski-rental setting. β = 1 is the textbook "spin for as
+long as a block costs" rule. β is the one parameter that was tuned.
+
+| Lock | Policy |
+|---|---|
+| `ada` (Policy A) | Budget = β × Ŵ, capped at 151.3 µs |
+| `hedge` (Policy B) | Hedge over 6 arms {0, 2.35, 4.75, 9.45, 37.85, 151.3} µs: no spin, the four static budgets, and 32 × the E1 median. Discounted cumulative cost with a horizon of 1,024 slow paths and η = √(8 ln 6 / 1024). The arm is drawn at random. |
+| `exp3` (exploratory) | Same arms, learns only from the arm it used (importance-weighted) |
+| `ta` | Base policy (chosen by the tuning rule) + throttle detector |
+
+**Why Hedge can learn from every arm at once ("censored" feedback).**
+
+- If the waiter got the lock while spinning, *w* is known exactly, so the
+  cost of every arm is known.
+- If it parked, every arm no longer than its own budget would have parked
+  too, so those arms cost *b* + C.
+- Longer arms are estimated from the stamp of the release that finally let
+  it in. This is an upper bound on the wait a spinner would have seen, so the
+  estimate leans toward parking.
+
+**Throttle-aware variant.**
+
+- A helper thread reads the process's own cgroup `cpu.stat` every 1 ms while
+  `cpu.max` sets a quota. With no quota, it re-checks `cpu.max` every 100 ms
+  and otherwise does nothing.
+- Trigger: `nr_throttled` went up, or the last millisecond's CPU usage
+  reached 90% of the quota.
+- On a trigger, waiters park immediately (budget 0) for `hold` quota
+  periods.
+  - If the next trigger comes within one period after park mode ends (the
+    probe back into spinning failed), `hold` doubles, up to 64 periods.
+  - Any later trigger resets it to 1.
+- These parameters were fixed by design before any throttled data and were
+  not tuned.
+
+**Overheads** (`calib policy`, `calib timer`; single thread):
+
+| | choose (slow path, before spinning) | update (after release) | uncontended lock+unlock |
+|---|---|---|---|
+| park (static) | – | – | 2.87 ns |
+| ada | 0.3 ns | 14.7 ns | 3.16 ns |
+| hedge | 10.5 ns | 27.9 ns | 3.16 ns |
+| exp3 | 10.5 ns | 18.4 ns | 3.15 ns |
+| ta | as base | as base | 3.36 ns |
+
+Neither cost lands inside a critical section. The choice happens while the
+lock is held by someone else, and the update runs after the release.
+
+**Correctness.** 39/39 counter tests pass (13 lock specs × T = 2, 8, 32), and
+ThreadSanitizer reports 0 warnings. `ta` also passes inside a 50% CPU quota,
+where 60–90% of its slow paths were forced to park, so that path is
+exercised.
+
+### 12.2 Protocol (RESEARCH_PHASE.md §5.8, written before any Phase 3 data)
+
+Commit `7df4987` (22:15:45) holds the code and the protocol and predates all
+Phase 3 data. The protocol fixes:
+
+- the tuning rule;
+- the E6/E7/E8 lock lists;
+- the throttled launcher;
+- clarification C2: the best static lock (H3) and the minimum over S (H4)
+  are recomputed in every bootstrap resample.
+
+Disclosed in the protocol:
+
+- One design iteration on the tuning set (Hedge normalisation, D15).
+- One throttled mechanism check at T = 8, 100% quota (not an H4 case). In it,
+  spin's p99.9 (67 µs) was *lower* than `ta`'s (499 µs). Nothing was changed
+  after it.
+- The Phase 2 results were known when the policies were designed.

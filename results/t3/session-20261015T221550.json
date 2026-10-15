@@ -1,0 +1,693 @@
+{
+ "experiment": "t3",
+ "session": "20261015T221550",
+ "seed": 20261014,
+ "commit": "7df49879551c85a04c38121f6d156220d57a925a",
+ "dirty": false,
+ "calib": {
+  "tsc_hz": 3193999354,
+  "iters_per_ns": 4.71075
+ },
+ "manifest_start": {
+  "collected_at": "2026-10-15T22:15:50+0530",
+  "machine_id": "45dc2ca9a840",
+  "cpu": {
+   "model": "AMD Ryzen 7 6800H with Radeon Graphics",
+   "cpus": "16",
+   "threads_per_core": "2",
+   "cores_per_socket": "8",
+   "sockets": "1",
+   "numa_nodes": "1",
+   "l3": "16 MiB (1 instance)",
+   "tsc_flags": [
+    "constant_tsc",
+    "nonstop_tsc",
+    "rdtscp"
+   ]
+  },
+  "topology": [
+   {
+    "cpu": 0,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 1,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 2,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 3,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 4,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 5,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 6,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 7,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 8,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 9,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 10,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 11,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 12,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 13,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 14,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 15,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   }
+  ],
+  "kernel": "7.2.5-3-omarchy",
+  "kernel_cmdline_relevant": [],
+  "glibc": "ldd (GNU libc) 2.44",
+  "compiler": "gcc (GCC) 16.2.1 20260810",
+  "build_flags": "CC=gcc CFLAGS=-std=gnu11 -O2 -g -Wall -Wextra -pthread -D_GNU_SOURCE LDLIBS=-lm",
+  "python": "3.14.7",
+  "cpufreq": {
+   "driver": [
+    "amd-pstate-epp"
+   ],
+   "governor": [
+    "performance"
+   ],
+   "epp": [
+    "performance"
+   ],
+   "boost": "1"
+  },
+  "smt_control": "on",
+  "clocksource": "tsc",
+  "cpuidle_states": [
+   {
+    "name": "POLL",
+    "latency_us": "0",
+    "disabled": "0"
+   },
+   {
+    "name": "C1",
+    "latency_us": "1",
+    "disabled": "0"
+   },
+   {
+    "name": "C2",
+    "latency_us": "18",
+    "disabled": "0"
+   },
+   {
+    "name": "C3",
+    "latency_us": "350",
+    "disabled": "0"
+   }
+  ],
+  "cgroup": {
+   "fs": "cgroup2fs",
+   "controllers": "cpuset cpu io memory hugetlb pids rdma misc dmem",
+   "user_delegated": "cpu memory pids"
+  },
+  "power": {
+   "ac_online": true,
+   "battery_status": "Charging",
+   "battery_capacity": "52"
+  },
+  "perf_event_paranoid": "2",
+  "glibc_tunables_env": null,
+  "loadavg": "0.48 1.12 0.88 2/1463 20733",
+  "git": {
+   "commit": "7df49879551c85a04c38121f6d156220d57a925a",
+   "dirty": true
+  },
+  "calib": {
+   "tsc_hz": 3194000616,
+   "iters_per_ns": 4.7084
+  }
+ },
+ "order": [
+  "t3_hedge-b1_h100_t4_cores_r0",
+  "t3_ada-b1_h1000_t4_cores_r3",
+  "t3_hedge-b16_h50000_t4_cores_r0",
+  "t3_hedge-b16_h1000_t4_cores_r4",
+  "t3_hedge-b4_h10000_t4_cores_r0",
+  "t3_hedge-b16_h100_t4_cores_r3",
+  "t3_stp-4750_h1000_t4_cores_r0",
+  "t3_ada-b4_h100_t4_cores_r4",
+  "t3_hedge-b16_h10000_t4_cores_r1",
+  "t3_stp-2350_h50000_t4_cores_r0",
+  "t3_spin_h50000_t4_cores_r4",
+  "t3_ada-b2_h100_t4_cores_r3",
+  "t3_ada-b4_h50000_t4_cores_r0",
+  "t3_park_h1000_t4_cores_r3",
+  "t3_stp-4750_h1000_t4_cores_r4",
+  "t3_park_h50000_t4_cores_r2",
+  "t3_ada-b4_h1000_t4_cores_r2",
+  "t3_stp-4750_h1000_t4_cores_r3",
+  "t3_stp-9450_h10000_t4_cores_r4",
+  "t3_ada-b16_h50000_t4_cores_r3",
+  "t3_ada-b1_h1000_t4_cores_r4",
+  "t3_hedge-b4_h10000_t4_cores_r3",
+  "t3_ada-b16_h10000_t4_cores_r2",
+  "t3_hedge-b2_h100_t4_cores_r2",
+  "t3_park_h50000_t4_cores_r1",
+  "t3_ada-b1_h1000_t4_cores_r2",
+  "t3_hedge-b1_h1000_t4_cores_r0",
+  "t3_park_h1000_t4_cores_r4",
+  "t3_hedge-b8_h50000_t4_cores_r1",
+  "t3_ada-b2_h50000_t4_cores_r0",
+  "t3_ada-b16_h10000_t4_cores_r4",
+  "t3_hedge-b1_h100_t4_cores_r4",
+  "t3_park_h100_t4_cores_r1",
+  "t3_ada-b8_h50000_t4_cores_r4",
+  "t3_stp-37850_h100_t4_cores_r4",
+  "t3_stp-9450_h50000_t4_cores_r3",
+  "t3_hedge-b16_h50000_t4_cores_r3",
+  "t3_stp-2350_h10000_t4_cores_r3",
+  "t3_stp-2350_h1000_t4_cores_r1",
+  "t3_ada-b16_h100_t4_cores_r1",
+  "t3_spin_h1000_t4_cores_r4",
+  "t3_stp-37850_h100_t4_cores_r1",
+  "t3_park_h10000_t4_cores_r1",
+  "t3_stp-9450_h100_t4_cores_r3",
+  "t3_ada-b1_h50000_t4_cores_r0",
+  "t3_ada-b2_h1000_t4_cores_r1",
+  "t3_ada-b4_h50000_t4_cores_r2",
+  "t3_spin_h10000_t4_cores_r3",
+  "t3_hedge-b1_h1000_t4_cores_r3",
+  "t3_spin_h10000_t4_cores_r2",
+  "t3_hedge-b2_h50000_t4_cores_r1",
+  "t3_stp-2350_h10000_t4_cores_r1",
+  "t3_hedge-b2_h10000_t4_cores_r2",
+  "t3_spin_h1000_t4_cores_r0",
+  "t3_ada-b1_h100_t4_cores_r3",
+  "t3_hedge-b16_h100_t4_cores_r1",
+  "t3_hedge-b16_h10000_t4_cores_r0",
+  "t3_ada-b2_h100_t4_cores_r4",
+  "t3_hedge-b16_h1000_t4_cores_r0",
+  "t3_ada-b4_h50000_t4_cores_r3",
+  "t3_ada-b2_h1000_t4_cores_r0",
+  "t3_hedge-b2_h1000_t4_cores_r2",
+  "t3_hedge-b1_h50000_t4_cores_r2",
+  "t3_hedge-b2_h50000_t4_cores_r4",
+  "t3_hedge-b4_h1000_t4_cores_r0",
+  "t3_stp-37850_h10000_t4_cores_r1",
+  "t3_stp-37850_h1000_t4_cores_r2",
+  "t3_ada-b4_h10000_t4_cores_r2",
+  "t3_hedge-b8_h1000_t4_cores_r3",
+  "t3_stp-2350_h10000_t4_cores_r4",
+  "t3_hedge-b8_h50000_t4_cores_r0",
+  "t3_hedge-b4_h1000_t4_cores_r3",
+  "t3_hedge-b16_h10000_t4_cores_r3",
+  "t3_hedge-b8_h10000_t4_cores_r2",
+  "t3_spin_h50000_t4_cores_r0",
+  "t3_stp-37850_h1000_t4_cores_r1",
+  "t3_hedge-b2_h10000_t4_cores_r0",
+  "t3_stp-9450_h100_t4_cores_r4",
+  "t3_park_h10000_t4_cores_r0",
+  "t3_stp-2350_h100_t4_cores_r3",
+  "t3_hedge-b4_h50000_t4_cores_r1",
+  "t3_hedge-b2_h50000_t4_cores_r0",
+  "t3_stp-9450_h1000_t4_cores_r0",
+  "t3_ada-b2_h100_t4_cores_r0",
+  "t3_park_h50000_t4_cores_r0",
+  "t3_hedge-b8_h1000_t4_cores_r4",
+  "t3_stp-4750_h10000_t4_cores_r1",
+  "t3_stp-9450_h10000_t4_cores_r1",
+  "t3_stp-2350_h100_t4_cores_r1",
+  "t3_hedge-b16_h1000_t4_cores_r1",
+  "t3_ada-b8_h50000_t4_cores_r3",
+  "t3_hedge-b8_h100_t4_cores_r4",
+  "t3_hedge-b4_h10000_t4_cores_r2",
+  "t3_hedge-b4_h50000_t4_cores_r3",
+  "t3_ada-b4_h1000_t4_cores_r3",
+  "t3_stp-37850_h10000_t4_cores_r2",
+  "t3_stp-9450_h1000_t4_cores_r4",
+  "t3_stp-4750_h100_t4_cores_r0",
+  "t3_hedge-b2_h100_t4_cores_r4",
+  "t3_ada-b8_h100_t4_cores_r4",
+  "t3_ada-b16_h10000_t4_cores_r0",
+  "t3_park_h10000_t4_cores_r4",
+  "t3_stp-2350_h10000_t4_cores_r2",
+  "t3_ada-b2_h100_t4_cores_r2",
+  "t3_hedge-b4_h1000_t4_cores_r2",
+  "t3_ada-b2_h50000_t4_cores_r2",
+  "t3_stp-4750_h10000_t4_cores_r2",
+  "t3_hedge-b1_h50000_t4_cores_r4",
+  "t3_stp-2350_h100_t4_cores_r0",
+  "t3_stp-4750_h100_t4_cores_r1",
+  "t3_stp-2350_h100_t4_cores_r2",
+  "t3_ada-b1_h100_t4_cores_r4",
+  "t3_hedge-b1_h10000_t4_cores_r4",
+  "t3_ada-b16_h50000_t4_cores_r4",
+  "t3_ada-b4_h1000_t4_cores_r0",
+  "t3_hedge-b8_h50000_t4_cores_r3",
+  "t3_ada-b4_h1000_t4_cores_r1",
+  "t3_hedge-b8_h50000_t4_cores_r2",
+  "t3_ada-b8_h50000_t4_cores_r1",
+  "t3_spin_h100_t4_cores_r3",
+  "t3_ada-b8_h1000_t4_cores_r2",
+  "t3_stp-37850_h100_t4_cores_r3",
+  "t3_hedge-b4_h50000_t4_cores_r2",
+  "t3_ada-b8_h50000_t4_cores_r2",
+  "t3_hedge-b1_h50000_t4_cores_r3",
+  "t3_hedge-b4_h100_t4_cores_r2",
+  "t3_ada-b2_h10000_t4_cores_r2",
+  "t3_park_h1000_t4_cores_r2",
+  "t3_hedge-b2_h10000_t4_cores_r3",
+  "t3_ada-b1_h10000_t4_cores_r3",
+  "t3_hedge-b2_h50000_t4_cores_r3",
+  "t3_ada-b2_h10000_t4_cores_r3",
+  "t3_stp-4750_h1000_t4_cores_r2",
+  "t3_ada-b8_h1000_t4_cores_r3",
+  "t3_ada-b16_h100_t4_cores_r2",
+  "t3_stp-9450_h100_t4_cores_r2",
+  "t3_stp-9450_h50000_t4_cores_r0",
+  "t3_stp-2350_h1000_t4_cores_r0",
+  "t3_spin_h10000_t4_cores_r4",
+  "t3_ada-b2_h50000_t4_cores_r4",
+  "t3_ada-b8_h10000_t4_cores_r3",
+  "t3_hedge-b16_h1000_t4_cores_r3",
+  "t3_ada-b4_h10000_t4_cores_r3",
+  "t3_spin_h1000_t4_cores_r2",
+  "t3_stp-4750_h100_t4_cores_r3",
+  "t3_hedge-b1_h10000_t4_cores_r1",
+  "t3_hedge-b1_h10000_t4_cores_r3",
+  "t3_park_h10000_t4_cores_r3",
+  "t3_ada-b1_h10000_t4_cores_r0",
+  "t3_stp-37850_h50000_t4_cores_r3",
+  "t3_hedge-b16_h100_t4_cores_r0",
+  "t3_hedge-b2_h100_t4_cores_r0",
+  "t3_stp-37850_h1000_t4_cores_r0",
+  "t3_park_h50000_t4_cores_r3",
+  "t3_stp-37850_h50000_t4_cores_r2",
+  "t3_ada-b4_h10000_t4_cores_r4",
+  "t3_stp-9450_h100_t4_cores_r0",
+  "t3_ada-b16_h50000_t4_cores_r0",
+  "t3_stp-9450_h10000_t4_cores_r0",
+  "t3_stp-37850_h100_t4_cores_r2",
+  "t3_stp-37850_h10000_t4_cores_r0",
+  "t3_stp-2350_h50000_t4_cores_r4",
+  "t3_park_h10000_t4_cores_r2",
+  "t3_stp-37850_h50000_t4_cores_r4",
+  "t3_stp-4750_h10000_t4_cores_r3",
+  "t3_hedge-b4_h100_t4_cores_r1",
+  "t3_ada-b4_h100_t4_cores_r2",
+  "t3_ada-b2_h1000_t4_cores_r4",
+  "t3_ada-b16_h1000_t4_cores_r4",
+  "t3_stp-4750_h50000_t4_cores_r2",
+  "t3_stp-2350_h1000_t4_cores_r2",
+  "t3_spin_h100_t4_cores_r0",
+  "t3_stp-37850_h1000_t4_cores_r3",
+  "t3_stp-9450_h50000_t4_cores_r4",
+  "t3_spin_h10000_t4_cores_r1",
+  "t3_stp-37850_h50000_t4_cores_r1",
+  "t3_stp-4750_h50000_t4_cores_r4",
+  "t3_hedge-b8_h10000_t4_cores_r3",
+  "t3_hedge-b2_h1000_t4_cores_r4",
+  "t3_ada-b8_h100_t4_cores_r0",
+  "t3_hedge-b16_h10000_t4_cores_r4",
+  "t3_ada-b8_h10000_t4_cores_r2",
+  "t3_ada-b1_h1000_t4_cores_r1",
+  "t3_spin_h1000_t4_cores_r1",
+  "t3_spin_h1000_t4_cores_r3",
+  "t3_ada-b16_h50000_t4_cores_r2",
+  "t3_hedge-b1_h50000_t4_cores_r1",
+  "t3_stp-37850_h10000_t4_cores_r4",
+  "t3_hedge-b1_h50000_t4_cores_r0",
+  "t3_ada-b1_h1000_t4_cores_r0",
+  "t3_spin_h100_t4_cores_r1",
+  "t3_park_h50000_t4_cores_r4",
+  "t3_hedge-b4_h10000_t4_cores_r4",
+  "t3_hedge-b8_h1000_t4_cores_r2",
+  "t3_hedge-b4_h50000_t4_cores_r0",
+  "t3_hedge-b16_h50000_t4_cores_r2",
+  "t3_spin_h50000_t4_cores_r2",
+  "t3_hedge-b8_h50000_t4_cores_r4",
+  "t3_ada-b16_h100_t4_cores_r4",
+  "t3_hedge-b2_h1000_t4_cores_r0",
+  "t3_ada-b4_h50000_t4_cores_r4",
+  "t3_ada-b4_h10000_t4_cores_r0",
+  "t3_spin_h50000_t4_cores_r3",
+  "t3_ada-b2_h50000_t4_cores_r1",
+  "t3_ada-b16_h1000_t4_cores_r0",
+  "t3_ada-b1_h100_t4_cores_r0",
+  "t3_ada-b1_h10000_t4_cores_r2",
+  "t3_hedge-b1_h1000_t4_cores_r2",
+  "t3_ada-b16_h1000_t4_cores_r2",
+  "t3_spin_h50000_t4_cores_r1",
+  "t3_ada-b16_h10000_t4_cores_r1",
+  "t3_park_h1000_t4_cores_r0",
+  "t3_stp-2350_h50000_t4_cores_r1",
+  "t3_stp-4750_h50000_t4_cores_r0",
+  "t3_ada-b2_h10000_t4_cores_r4",
+  "t3_hedge-b8_h100_t4_cores_r0",
+  "t3_ada-b16_h100_t4_cores_r3",
+  "t3_hedge-b8_h10000_t4_cores_r0",
+  "t3_ada-b1_h10000_t4_cores_r1",
+  "t3_stp-9450_h1000_t4_cores_r1",
+  "t3_ada-b1_h50000_t4_cores_r1",
+  "t3_stp-37850_h10000_t4_cores_r3",
+  "t3_hedge-b16_h100_t4_cores_r4",
+  "t3_ada-b8_h100_t4_cores_r2",
+  "t3_hedge-b1_h10000_t4_cores_r0",
+  "t3_hedge-b16_h1000_t4_cores_r2",
+  "t3_hedge-b1_h10000_t4_cores_r2",
+  "t3_ada-b2_h10000_t4_cores_r0",
+  "t3_ada-b2_h1000_t4_cores_r3",
+  "t3_ada-b8_h1000_t4_cores_r1",
+  "t3_hedge-b8_h100_t4_cores_r3",
+  "t3_stp-2350_h50000_t4_cores_r2",
+  "t3_hedge-b2_h100_t4_cores_r1",
+  "t3_hedge-b2_h10000_t4_cores_r4",
+  "t3_stp-9450_h10000_t4_cores_r2",
+  "t3_stp-37850_h50000_t4_cores_r0",
+  "t3_ada-b16_h1000_t4_cores_r3",
+  "t3_stp-4750_h50000_t4_cores_r3",
+  "t3_hedge-b2_h1000_t4_cores_r3",
+  "t3_stp-37850_h100_t4_cores_r0",
+  "t3_hedge-b8_h100_t4_cores_r1",
+  "t3_hedge-b16_h50000_t4_cores_r1",
+  "t3_stp-4750_h100_t4_cores_r2",
+  "t3_ada-b8_h10000_t4_cores_r0",
+  "t3_ada-b16_h10000_t4_cores_r3",
+  "t3_hedge-b4_h100_t4_cores_r4",
+  "t3_stp-4750_h10000_t4_cores_r4",
+  "t3_hedge-b4_h1000_t4_cores_r1",
+  "t3_ada-b4_h50000_t4_cores_r1",
+  "t3_hedge-b2_h100_t4_cores_r3",
+  "t3_ada-b1_h100_t4_cores_r2",
+  "t3_ada-b2_h1000_t4_cores_r2",
+  "t3_ada-b8_h10000_t4_cores_r4",
+  "t3_stp-2350_h1000_t4_cores_r3",
+  "t3_hedge-b4_h100_t4_cores_r3",
+  "t3_hedge-b8_h10000_t4_cores_r4",
+  "t3_park_h100_t4_cores_r3",
+  "t3_hedge-b16_h10000_t4_cores_r2",
+  "t3_hedge-b8_h1000_t4_cores_r0",
+  "t3_hedge-b2_h10000_t4_cores_r1",
+  "t3_hedge-b8_h100_t4_cores_r2",
+  "t3_stp-4750_h100_t4_cores_r4",
+  "t3_ada-b1_h50000_t4_cores_r2",
+  "t3_park_h100_t4_cores_r0",
+  "t3_park_h100_t4_cores_r2",
+  "t3_ada-b2_h10000_t4_cores_r1",
+  "t3_park_h100_t4_cores_r4",
+  "t3_spin_h100_t4_cores_r4",
+  "t3_hedge-b4_h10000_t4_cores_r1",
+  "t3_stp-9450_h1000_t4_cores_r3",
+  "t3_ada-b8_h10000_t4_cores_r1",
+  "t3_stp-2350_h1000_t4_cores_r4",
+  "t3_ada-b8_h1000_t4_cores_r0",
+  "t3_ada-b1_h50000_t4_cores_r4",
+  "t3_stp-9450_h10000_t4_cores_r3",
+  "t3_stp-9450_h1000_t4_cores_r2",
+  "t3_stp-4750_h1000_t4_cores_r1",
+  "t3_hedge-b8_h1000_t4_cores_r1",
+  "t3_hedge-b1_h100_t4_cores_r2",
+  "t3_stp-9450_h100_t4_cores_r1",
+  "t3_ada-b16_h100_t4_cores_r0",
+  "t3_ada-b2_h100_t4_cores_r1",
+  "t3_ada-b8_h1000_t4_cores_r4",
+  "t3_stp-2350_h100_t4_cores_r4",
+  "t3_park_h1000_t4_cores_r1",
+  "t3_stp-4750_h10000_t4_cores_r0",
+  "t3_ada-b8_h50000_t4_cores_r0",
+  "t3_stp-4750_h50000_t4_cores_r1",
+  "t3_spin_h10000_t4_cores_r0",
+  "t3_ada-b4_h10000_t4_cores_r1",
+  "t3_stp-2350_h50000_t4_cores_r3",
+  "t3_spin_h100_t4_cores_r2",
+  "t3_hedge-b8_h10000_t4_cores_r1",
+  "t3_ada-b16_h50000_t4_cores_r1",
+  "t3_ada-b1_h10000_t4_cores_r4",
+  "t3_ada-b4_h100_t4_cores_r1",
+  "t3_ada-b16_h1000_t4_cores_r1",
+  "t3_hedge-b2_h50000_t4_cores_r2",
+  "t3_ada-b4_h100_t4_cores_r0",
+  "t3_hedge-b1_h1000_t4_cores_r4",
+  "t3_stp-2350_h10000_t4_cores_r0",
+  "t3_ada-b1_h100_t4_cores_r1",
+  "t3_ada-b1_h50000_t4_cores_r3",
+  "t3_hedge-b1_h100_t4_cores_r1",
+  "t3_hedge-b1_h1000_t4_cores_r1",
+  "t3_ada-b2_h50000_t4_cores_r3",
+  "t3_hedge-b1_h100_t4_cores_r3",
+  "t3_hedge-b16_h50000_t4_cores_r4",
+  "t3_stp-9450_h50000_t4_cores_r2",
+  "t3_ada-b8_h100_t4_cores_r1",
+  "t3_hedge-b4_h1000_t4_cores_r4",
+  "t3_ada-b4_h100_t4_cores_r3",
+  "t3_ada-b8_h100_t4_cores_r3",
+  "t3_ada-b4_h1000_t4_cores_r4",
+  "t3_hedge-b4_h100_t4_cores_r0",
+  "t3_hedge-b16_h100_t4_cores_r2",
+  "t3_hedge-b2_h1000_t4_cores_r1",
+  "t3_stp-9450_h50000_t4_cores_r1",
+  "t3_stp-37850_h1000_t4_cores_r4",
+  "t3_hedge-b4_h50000_t4_cores_r4"
+ ],
+ "manifest_end": {
+  "collected_at": "2026-10-15T22:29:13+0530",
+  "machine_id": "45dc2ca9a840",
+  "cpu": {
+   "model": "AMD Ryzen 7 6800H with Radeon Graphics",
+   "cpus": "16",
+   "threads_per_core": "2",
+   "cores_per_socket": "8",
+   "sockets": "1",
+   "numa_nodes": "1",
+   "l3": "16 MiB (1 instance)",
+   "tsc_flags": [
+    "constant_tsc",
+    "nonstop_tsc",
+    "rdtscp"
+   ]
+  },
+  "topology": [
+   {
+    "cpu": 0,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 1,
+    "core_id": "0",
+    "siblings": "0-1",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 2,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 3,
+    "core_id": "1",
+    "siblings": "2-3",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 4,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 5,
+    "core_id": "2",
+    "siblings": "4-5",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 6,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 7,
+    "core_id": "3",
+    "siblings": "6-7",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 8,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 9,
+    "core_id": "4",
+    "siblings": "8-9",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 10,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 11,
+    "core_id": "5",
+    "siblings": "10-11",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 12,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 13,
+    "core_id": "6",
+    "siblings": "12-13",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 14,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   },
+   {
+    "cpu": 15,
+    "core_id": "7",
+    "siblings": "14-15",
+    "max_khz": "4787082"
+   }
+  ],
+  "kernel": "7.2.5-3-omarchy",
+  "kernel_cmdline_relevant": [],
+  "glibc": "ldd (GNU libc) 2.44",
+  "compiler": "gcc (GCC) 16.2.1 20260810",
+  "build_flags": "CC=gcc CFLAGS=-std=gnu11 -O2 -g -Wall -Wextra -pthread -D_GNU_SOURCE LDLIBS=-lm",
+  "python": "3.14.7",
+  "cpufreq": {
+   "driver": [
+    "amd-pstate-epp"
+   ],
+   "governor": [
+    "performance"
+   ],
+   "epp": [
+    "performance"
+   ],
+   "boost": "1"
+  },
+  "smt_control": "on",
+  "clocksource": "tsc",
+  "cpuidle_states": [
+   {
+    "name": "POLL",
+    "latency_us": "0",
+    "disabled": "0"
+   },
+   {
+    "name": "C1",
+    "latency_us": "1",
+    "disabled": "0"
+   },
+   {
+    "name": "C2",
+    "latency_us": "18",
+    "disabled": "0"
+   },
+   {
+    "name": "C3",
+    "latency_us": "350",
+    "disabled": "0"
+   }
+  ],
+  "cgroup": {
+   "fs": "cgroup2fs",
+   "controllers": "cpuset cpu io memory hugetlb pids rdma misc dmem",
+   "user_delegated": "cpu memory pids"
+  },
+  "power": {
+   "ac_online": true,
+   "battery_status": "Charging",
+   "battery_capacity": "75"
+  },
+  "perf_event_paranoid": "2",
+  "glibc_tunables_env": null,
+  "loadavg": "2.82 2.42 1.80 1/1460 26879",
+  "git": {
+   "commit": "7df49879551c85a04c38121f6d156220d57a925a",
+   "dirty": true
+  },
+  "calib": {
+   "tsc_hz": 3193999361,
+   "iters_per_ns": 4.72881
+  }
+ },
+ "invalid_runs": 0,
+ "elapsed_s": 803.0
+}

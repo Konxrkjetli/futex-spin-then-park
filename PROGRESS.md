@@ -65,7 +65,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 - [x] Adaptive locks: counter test + TSan (39/39 pass, 0 TSan warnings; `ta` also under a 50% quota)
 - [x] Policy overhead measured (`calib policy`, `calib timer`)
 - [x] Phase 3 protocol written before any Phase 3 data (RESEARCH_PHASE §5.8)
-- [ ] Tuning session T3 (steady T = 4) → `config/policy.json`, tag `prereg-v1-p3`
+- [x] Tuning session T3 (steady T = 4, 320 runs, 0 invalid) → `config/policy.json` (ada β = 8, hedge β = 8, ta base = ada), tag `prereg-v1-p3`
 - [ ] Adaptive locks on steady / phase-changing / randomized workloads
 - [ ] Throttle-aware variant
 - [ ] Throttled runs (H4)
@@ -140,4 +140,6 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 22:10 | `calib policy`: choose / update = ada 0.3 / 14.7 ns, hedge 10.5 / 27.9 ns, exp3 10.5 / 18.4 ns (off the critical section). Uncontended lock+unlock: park 2.87 ns, adaptive 3.15–3.36 ns |
 | 22:11 | Tuning-set smoke run (T = 4, hold 1 µs): Hedge did not separate arms → normalisation fixed (D15); re-tested 39/39, TSan clean |
 | 22:13 | Throttled-launcher mechanism check (T = 8, 100% quota, not an H4 case): counters recorded, `ta` forced 100% of slow paths; disclosed in §5.8 |
-| 22:16 | Phase 3 protocol (RESEARCH_PHASE §5.8, C2) written; committed before T3 |
+| 22:15 | Phase 3 protocol (RESEARCH_PHASE §5.8, C2) written; committed `7df4987` (22:15:45) before T3 |
+| 22:15:50 | T3 started (first Phase 3 data) |
+| 22:29 | T3 done: 320 runs, 0 invalid, 13.4 min. Rule applied: ada β = 8 (4/4 tuning holds within the H3 bounds), hedge β = 8 (2/4: p99.9 6.3× at 1 µs, throughput 0.91× at 10 µs), ta base = ada |
