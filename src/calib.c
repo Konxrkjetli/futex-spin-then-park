@@ -5,7 +5,9 @@
  *   calib timer             cost of timestamps, pause, futex_wake with no
  *                           waiters, and uncontended lock+unlock per lock
  *   calib tsc-sync A B      cross-CPU TSC consistency check (ping-pong)
- *   calib work              requested vs measured duration of spin_work */
+ *   calib work              requested vs measured duration of spin_work
+ *   calib policy            cost of one policy decision and one update
+ *                           (ada, hedge, exp3), single thread, no lock */
 
 #include <math.h>
 #include <pthread.h>
@@ -95,7 +97,8 @@ static int cmd_timer(void)
     printf("\"clock_gettime_ns\":%.2f,\"pause_ns\":%.2f,\"futex_wake_nowaiter_ns\":%.1f,",
            cg_ns, pause_ns, wake_ns);
 
-    static const char *specs[] = { "park", "spin", "stp:1000", "pthread", "pthread-adaptive", "none" };
+    static const char *specs[] = { "park", "spin", "stp:1000", "pthread", "pthread-adaptive",
+                                   "ada", "hedge", "exp3", "ta", "none" };
     printf("\"uncontended_lock_unlock_ns\":{");
     for (size_t s = 0; s < sizeof specs / sizeof specs[0]; s++) {
         struct lock_params lp;
@@ -205,10 +208,58 @@ static int cmd_work(void)
     return 0;
 }
 
+/* Policy bookkeeping cost: pol_choose (on the slow path, before spinning)
+ * and pol_update (in unlock, after the release) on a synthetic stream of
+ * observations: 70% spin acquisitions with waits up to 20 us, 30% parks with
+ * a wake sample. */
+static int cmd_policy(void)
+{
+    enum { N = 2000000, NOBS = 4096 };
+    static struct pol_obs obs[NOBS];
+    uint64_t r = 0x9E3779B97F4A7C15ull;
+    for (int i = 0; i < NOBS; i++) {
+        double u = pol_unit(&r), v = pol_unit(&r);
+        obs[i].spun = u < 0.7;
+        obs[i].arm = (int)(v * 6);
+        obs[i].b_ns = obs[i].spun ? 151300 : 4750;
+        obs[i].w_ns = obs[i].spun ? v * 20000 : 4750 + v * 50000;
+        obs[i].woke = !obs[i].spun;
+        obs[i].wake_ns = 3000 + v * 6000;
+    }
+    static const char *names[] = { "ada", "hedge", "exp3" };
+    printf("{\"tool\":\"calib-policy\",\"tsc_hz\":%.0f,\"policies\":{", tsc_hz);
+    for (int k = 0; k < 3; k++) {
+        struct policy_cfg c;
+        struct pol_state s;
+        pol_default(&c, (enum pol_kind)k);
+        pol_init(&s, &c, &s);
+        uint64_t sink = 0;
+        int arm;
+        uint64_t t0 = tsc_ordered();
+        for (int i = 0; i < N; i++)
+            sink += pol_choose(&s, &arm);
+        double choose_ns = tsc_to_ns(tsc_ordered() - t0) / N;
+        t0 = tsc_ordered();
+        for (int i = 0; i < N; i++) {
+            struct pol_obs o = obs[i & (NOBS - 1)];
+            if (o.arm >= c.narms)
+                o.arm = c.narms - 1;
+            if (k == 0)
+                o.arm = -1;
+            pol_update(&s, &o);
+        }
+        double update_ns = tsc_to_ns(tsc_ordered() - t0) / N;
+        printf("%s\"%s\":{\"choose_ns\":%.2f,\"update_ns\":%.2f,\"sink\":%llu}", k ? "," : "",
+               names[k], choose_ns, update_ns, (unsigned long long)(sink & 1));
+    }
+    printf("}}\n");
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
-        die("usage: calib tsc-hz | timer | tsc-sync CPU_A CPU_B | work");
+        die("usage: calib tsc-hz | timer | tsc-sync CPU_A CPU_B | work | policy");
     tsc_init();
     if (!strcmp(argv[1], "tsc-hz"))
         return cmd_tsc_hz();
@@ -216,6 +267,8 @@ int main(int argc, char **argv)
         return cmd_timer();
     if (!strcmp(argv[1], "tsc-sync") && argc == 4)
         return cmd_tsc_sync(atoi(argv[2]), atoi(argv[3]));
+    if (!strcmp(argv[1], "policy"))
+        return cmd_policy();
     if (!strcmp(argv[1], "work"))
         return cmd_work();
     die("unknown subcommand '%s'", argv[1]);

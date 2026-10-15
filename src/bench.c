@@ -9,7 +9,12 @@
  *
  * A run is a schedule of phases (hold, think, active threads, duration). A
  * steady workload is a single phase. Output is one JSON object on stdout;
- * histograms and windowed throughput optionally go to CSV files. */
+ * histograms and windowed throughput optionally go to CSV files.
+ *
+ * Phase 3 additions: per-window slow-path counters (slow, parks, forced
+ * parks, chosen spin budget) for the adaptive locks, cgroup CPU throttling
+ * counters over the measured window, per-thread tail quantiles, and the
+ * lock's own report (policy configuration, throttle detector state). */
 
 #include <getopt.h>
 #include <glob.h>
@@ -21,6 +26,7 @@
 #include <sys/resource.h>
 #include <time.h>
 
+#include "cgroup.h"
 #include "common.h"
 #include "hist.h"
 #include "lock.h"
@@ -69,6 +75,12 @@ static uint64_t (*cs_data)[CACHELINE / sizeof(uint64_t)];
 
 static pthread_barrier_t bar_ready, bar_go;
 
+/* Slow-path counters accumulated in one throughput window. */
+struct wstat {
+    uint32_t slow, parks, forced;
+    uint64_t budget_tsc;
+};
+
 struct tstate {
     alignas(PAD_BYTES) int id, cpu;
     pthread_t th;
@@ -76,6 +88,7 @@ struct tstate {
     uint64_t ops[MAX_PHASES];      /* measured acquisitions per phase */
     struct hist *hist;             /* [nphases], TSC ticks */
     uint32_t *win;                 /* [nwin] acquisitions per window */
+    struct wstat *wst;             /* [nwin] slow-path counters per window */
     struct lock_tstats lst;
 };
 _Static_assert(sizeof(struct tstate) % PAD_BYTES == 0, "tstate must be padded to PAD_BYTES");
@@ -106,6 +119,15 @@ static void sleep_until_tsc(uint64_t t)
     }
 }
 
+static void charge_window(struct wstat *w, struct lock_tstats *snap)
+{
+    w->slow += (uint32_t)(lk_stats.slow - snap->slow);
+    w->parks += (uint32_t)(lk_stats.parks - snap->parks);
+    w->forced += (uint32_t)(lk_stats.forced - snap->forced);
+    w->budget_tsc += lk_stats.budget_tsc - snap->budget_tsc;
+    *snap = lk_stats;
+}
+
 static void *worker(void *arg)
 {
     struct tstate *ts = arg;
@@ -114,7 +136,8 @@ static void *worker(void *arg)
         die("failed to pin thread %d to cpu %d", ts->id, ts->cpu);
     ts->hist = calloc((size_t)cfg.nphases, sizeof *ts->hist);
     ts->win = calloc(g.nwin, sizeof *ts->win);
-    if (!ts->hist || !ts->win)
+    ts->wst = calloc(g.nwin, sizeof *ts->wst);
+    if (!ts->hist || !ts->win || !ts->wst)
         die("worker allocation failed");
 
     const struct lock_ops *ops = g.ops;
@@ -126,6 +149,11 @@ static void *worker(void *arg)
     uint64_t ops_total = 0, ops_ph[MAX_PHASES] = { 0 };
     bool measuring = false;
     int p = 0;
+    /* Window of the last measured op, and lk_stats when that window began.
+     * The counters are charged to a window when the next one starts, so the
+     * hot loop only compares two indices. */
+    size_t cur_w = SIZE_MAX;
+    struct lock_tstats snap = { 0 };
 
     pthread_barrier_wait(&bar_ready);
     pthread_barrier_wait(&bar_go);
@@ -168,7 +196,13 @@ static void *worker(void *arg)
             ops_ph[p]++;
             if (timing)
                 hist_add(&ts->hist[p], t1 - t0);
-            ts->win[(tref - start) / wtsc]++;
+            size_t w = (tref - start) / wtsc;
+            ts->win[w]++;
+            if (unlikely(w != cur_w)) {
+                if (cur_w != SIZE_MAX)
+                    charge_window(&ts->wst[cur_w], &snap);
+                cur_w = w;
+            }
         }
 
         uint64_t think = ph->think_iters;
@@ -177,6 +211,8 @@ static void *worker(void *arg)
         spin_work(think);
     }
 
+    if (cur_w != SIZE_MAX)
+        charge_window(&ts->wst[cur_w], &snap);
     ts->ops_total = ops_total;
     memcpy(ts->ops, ops_ph, sizeof ops_ph);
     ts->lst = lk_stats;
@@ -243,7 +279,8 @@ static void usage(FILE *f)
 {
     fprintf(f,
 "usage: bench --lock SPEC [options]\n"
-"  --lock SPEC          park | spin | stp:<ns> | pthread | pthread-adaptive | none\n"
+"  --lock SPEC          park | spin | stp:<ns> | pthread | pthread-adaptive | none |\n"
+"                       ada[:k=v,..] | hedge[:k=v,..] | exp3[:k=v,..] | ta[:k=v,..]\n"
 "  --threads N          worker threads (default 4)\n"
 "  --hold-ns X          critical-section work per acquisition (default 1000)\n"
 "  --think-ns X         work between acquisitions (default 1000)\n"
@@ -424,11 +461,26 @@ int main(int argc, char **argv)
     g.end_tsc = t;
     pthread_barrier_wait(&bar_go);
 
+    /* cgroup CPU bandwidth counters around the measured window (throttled
+     * runs execute in their own transient scope with a cpu.max quota). */
+    char cg_dir[512], cg_max[64] = "";
+    struct cg_stat cg0 = { 0 }, cg1 = { 0 };
+    int cg_fd = -1;
+    if (cg_self_dir(cg_dir, sizeof cg_dir) == 0) {
+        long long q, per;
+        if (cg_read_max(cg_dir, &q, &per) == 0)
+            snprintf(cg_max, sizeof cg_max, q < 0 ? "max %lld" : "%lld %lld",
+                     q < 0 ? per : q, per);
+        cg_fd = cg_open_stat(cg_dir);
+    }
+
     struct rusage r0, r1;
     sleep_until_tsc(g.start_tsc);
     getrusage(RUSAGE_SELF, &r0);
+    bool cg_ok = cg_fd >= 0 && cg_read_stat_fd(cg_fd, &cg0) == 0;
     sleep_until_tsc(g.end_tsc);
     getrusage(RUSAGE_SELF, &r1);
+    cg_ok = cg_ok && cg_read_stat_fd(cg_fd, &cg1) == 0;
     for (int i = 0; i < cfg.threads; i++)
         pthread_join(ts[i].th, NULL);
     double temp_after = read_cpu_temp_c();
@@ -449,6 +501,15 @@ int main(int argc, char **argv)
         lst.parks += ts[i].lst.parks;
         lst.wakes += ts[i].lst.wakes;
         lst.spin_tsc += ts[i].lst.spin_tsc;
+        lst.budget_tsc += ts[i].lst.budget_tsc;
+        lst.forced += ts[i].lst.forced;
+        lst.wake_n += ts[i].lst.wake_n;
+        lst.wake_tsc += ts[i].lst.wake_tsc;
+        lst.cost_real += ts[i].lst.cost_real;
+        for (int k = 0; k < POL_MAX_ARMS; k++) {
+            lst.arm_n[k] += ts[i].lst.arm_n[k];
+            lst.cost_arm[k] += ts[i].lst.cost_arm[k];
+        }
     }
     bool counter_ok = cs_data[0][0] == ops_all;
     double wall_s = total_ms / 1e3;
@@ -486,10 +547,36 @@ int main(int argc, char **argv)
            (double)ops_measured / wall_s, counter_ok ? "true" : "false");
     printf("\"cpu_user_s\":%.4f,\"cpu_sys_s\":%.4f,\"cpu_util\":%.3f,\"vcsw\":%ld,\"ivcsw\":%ld,",
            user_s, sys_s, (user_s + sys_s) / wall_s, vcsw, ivcsw);
-    printf("\"lock_stats\":{\"slow\":%llu,\"spin_acq\":%llu,\"parks\":%llu,\"wakes\":%llu,\"spin_ms\":%.3f},",
+    printf("\"lock_stats\":{\"slow\":%llu,\"spin_acq\":%llu,\"parks\":%llu,\"wakes\":%llu,\"spin_ms\":%.3f,",
            (unsigned long long)lst.slow, (unsigned long long)lst.spin_acq,
            (unsigned long long)lst.parks, (unsigned long long)lst.wakes,
            tsc_to_ns(lst.spin_tsc) / 1e6);
+    printf("\"budget_mean_ns\":%.1f,\"forced\":%llu,\"wake_n\":%llu,\"wake_mean_ns\":%.1f,",
+           lst.slow ? tsc_to_ns(lst.budget_tsc) / (double)lst.slow : 0.0,
+           (unsigned long long)lst.forced, (unsigned long long)lst.wake_n,
+           lst.wake_n ? tsc_to_ns(lst.wake_tsc) / (double)lst.wake_n : 0.0);
+    printf("\"arm_n\":[");
+    for (int k = 0; k < POL_MAX_ARMS; k++)
+        printf("%s%llu", k ? "," : "", (unsigned long long)lst.arm_n[k]);
+    printf("],\"cost_real_ms\":%.4f,\"cost_arm_ms\":[", lst.cost_real / 1e6);
+    for (int k = 0; k < POL_MAX_ARMS; k++)
+        printf("%s%.4f", k ? "," : "", lst.cost_arm[k] / 1e6);
+    printf("]},");
+    if (cg_ok)
+        printf("\"cgroup\":{\"cpu_max\":\"%s\",\"usage_usec\":%lld,\"nr_periods\":%lld,"
+               "\"nr_throttled\":%lld,\"throttled_usec\":%lld},",
+               cg_max, cg1.usage_usec - cg0.usage_usec, cg1.nr_periods - cg0.nr_periods,
+               cg1.nr_throttled - cg0.nr_throttled, cg1.throttled_usec - cg0.throttled_usec);
+    else
+        printf("\"cgroup\":null,");
+    printf("\"lock_report\":");
+    if (g.ops->report) {
+        fflush(stdout);
+        g.ops->report(g.lock, stdout);
+    } else {
+        printf("null");
+    }
+    printf(",");
     printf("\"phases\":[");
     for (int p = 0; p < cfg.nphases; p++) {
         const struct phase *ph = &cfg.ph[p];
@@ -513,7 +600,23 @@ int main(int argc, char **argv)
         printf("\"per_thread_ops\":[");
         for (int i = 0; i < cfg.threads; i++)
             printf("%s%llu", i ? "," : "", (unsigned long long)ts[i].ops[p]);
-        printf("]}");
+        printf("]");
+        if (cfg.timing) {
+            /* Per-thread tails: a thread starved by barging shows up here
+             * even when its few acquisitions vanish from the pooled p99. */
+            static const char *keys[] = { "per_thread_p99_ns", "per_thread_p999_ns", "per_thread_max_ns" };
+            static const double qs[] = { 0.99, 0.999, 1.0 };
+            for (int k = 0; k < 3; k++) {
+                printf(",\"%s\":[", keys[k]);
+                for (int i = 0; i < cfg.threads; i++) {
+                    const struct hist *th = &ts[i].hist[p];
+                    double v = !th->n ? -1 : k == 2 ? tsc_to_ns(th->max) : tsc_to_ns(hist_quantile(th, qs[k]));
+                    printf("%s%.1f", i ? "," : "", v);
+                }
+                printf("]");
+            }
+        }
+        printf("}");
     }
     printf("]}\n");
 
@@ -533,16 +636,23 @@ int main(int argc, char **argv)
         FILE *f = fopen(cfg.windows_out, "w");
         if (!f)
             die("cannot write %s", cfg.windows_out);
-        fprintf(f, "window,t_ms,phase,ops\n");
+        fprintf(f, "window,t_ms,phase,ops,slow,parks,forced,budget_ns_sum\n");
         for (size_t w = 0; w + 1 < g.nwin; w++) {
             uint64_t wstart = g.start_tsc + (uint64_t)w * g.window_tsc, sum = 0;
+            uint64_t slow = 0, parks = 0, forced = 0, btsc = 0;
             int p = 0;
             while (p + 1 < cfg.nphases && wstart >= cfg.ph[p].end_tsc)
                 p++;
-            for (int i = 0; i < cfg.threads; i++)
+            for (int i = 0; i < cfg.threads; i++) {
                 sum += ts[i].win[w];
-            fprintf(f, "%zu,%.3f,%d,%llu\n", w, (double)w * cfg.window_ms, p,
-                    (unsigned long long)sum);
+                slow += ts[i].wst[w].slow;
+                parks += ts[i].wst[w].parks;
+                forced += ts[i].wst[w].forced;
+                btsc += ts[i].wst[w].budget_tsc;
+            }
+            fprintf(f, "%zu,%.3f,%d,%llu,%llu,%llu,%llu,%.0f\n", w, (double)w * cfg.window_ms, p,
+                    (unsigned long long)sum, (unsigned long long)slow, (unsigned long long)parks,
+                    (unsigned long long)forced, tsc_to_ns(btsc));
         }
         fclose(f);
     }

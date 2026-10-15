@@ -2,7 +2,7 @@
 
 Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Times are IST.
 
-**Current phase:** Phase 2 complete, awaiting review before Phase 3
+**Current phase:** Phase 3 in progress (go-ahead 2026-10-15 21:52 IST)
 **Results status:** H1 SUPPORTED, H2 PARTIALLY SUPPORTED (Phase 2). H3, H4 pending (Phase 3).
 
 ---
@@ -13,7 +13,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 |---|---|---|---|---|
 | 1. Foundation | 22:00 – 01:00 | **Done** (awaiting review) | 21:55 | 22:15 |
 | 2. Pre-registration + static experiments | 01:00 – 03:30 | **Done** (awaiting review) | 22:25 | 23:59 |
-| 3. Adaptive + throttling | 03:30 – 06:30 | Not started | | |
+| 3. Adaptive + throttling | 03:30 – 06:30 | **In progress** | 15 Oct 21:52 | |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started | | |
 
 ---
@@ -59,11 +59,13 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 
 ## Phase 3: Adaptive + throttling
 
-- [ ] Policy A (estimate-and-set)
-- [ ] Policy B (Hedge, censored feedback)
-- [ ] (optional) EXP3 variant
-- [ ] Adaptive locks: counter test + TSan
-- [ ] Policy overhead measured
+- [x] Policy A (estimate-and-set)
+- [x] Policy B (Hedge, censored feedback)
+- [x] (optional) EXP3 variant
+- [x] Adaptive locks: counter test + TSan (39/39 pass, 0 TSan warnings; `ta` also under a 50% quota)
+- [x] Policy overhead measured (`calib policy`, `calib timer`)
+- [x] Phase 3 protocol written before any Phase 3 data (RESEARCH_PHASE §5.8)
+- [ ] Tuning session T3 (steady T = 4) → `config/policy.json`, tag `prereg-v1-p3`
 - [ ] Adaptive locks on steady / phase-changing / randomized workloads
 - [ ] Throttle-aware variant
 - [ ] Throttled runs (H4)
@@ -98,6 +100,9 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | D11 | Boost left on for all experiments | Team gave the Phase 2 go-ahead without disabling boost; drift covariates recorded, limitation stated | 2026-10-14 22:25 |
 | D12 | Bootstrap resamples 2,000 instead of ≥ 10,000; order-statistic CIs for wake medians | Pure-Python analysis (numpy/scipy not installed) | 2026-10-14 22:28 |
 | D13 | Run records stored as JSON lines (`runs.jsonl`) plus per-run files instead of one CSV | Nested per-phase data; analysis flattens to CSV/tables | 2026-10-14 22:28 |
+| D14 | Phase 2 review questions resolved by the go-ahead "complete the phase 3": (1) per-thread / waiting-time-weighted latency added as **exploratory** analysis only; (2) boost stays **on** (same as Phase 2, so E6 static locks are comparable with E4/E5) | No change requested by the team | 2026-10-15 21:52 |
+| D15 | Hedge cost normalisation changed after a tuning-set smoke run (range-normalised → shifted by the round minimum and divided by C) | Range normalisation made per-acquisition differences ~0.5% of the range; Hedge did not separate arms. Tuning set only (T = 4 steady); disclosed in §5.8 | 2026-10-15 22:11 |
+| D16 | Harness additions for Phase 3: per-window slow-path counters, cgroup counters, per-thread tail quantiles, lock report (output only; one index comparison per op in the hot loop) | Needed for adaptation time series, H4 and the barging view. E6/E7 compare static and adaptive locks within one session, so the change applies to both sides | 2026-10-15 22:15 |
 | D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
 
 ## Log
@@ -129,3 +134,10 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 23:56 | E5 done: 160 runs, 0 invalid, 9.4 min |
 | 23:58 | Analyses run: **H2 PARTIALLY SUPPORTED** (2/4 cases). Barging artefact in long-hold p99 identified (Jain 0.33–0.54 for futex locks); verdict kept as pre-registered |
 | 23:59 | README / RESEARCH_PHASE §3.4 / PROGRESS updated (claims re-checked against data; 4 wording fixes); Phase 2 committed; awaiting review |
+| **15 Oct** | |
+| 21:52 | Phase 3 go-ahead ("complete the phase 3"). Machine freshly rebooted (load 0.5), boost on |
+| 22:09 | Adaptive locks built: `ada`, `hedge`, `exp3`, `ta` (`src/policy.c`, `src/lock_adaptive.c`, `src/cgroup.c`); 39/39 correctness, TSan clean |
+| 22:10 | `calib policy`: choose / update = ada 0.3 / 14.7 ns, hedge 10.5 / 27.9 ns, exp3 10.5 / 18.4 ns (off the critical section). Uncontended lock+unlock: park 2.87 ns, adaptive 3.15–3.36 ns |
+| 22:11 | Tuning-set smoke run (T = 4, hold 1 µs): Hedge did not separate arms → normalisation fixed (D15); re-tested 39/39, TSan clean |
+| 22:13 | Throttled-launcher mechanism check (T = 8, 100% quota, not an H4 case): counters recorded, `ta` forced 100% of slow paths; disclosed in §5.8 |
+| 22:16 | Phase 3 protocol (RESEARCH_PHASE §5.8, C2) written; committed before T3 |

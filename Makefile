@@ -4,7 +4,8 @@ TSAN_CFLAGS := -std=gnu11 -O1 -g -Wall -Wextra -pthread -D_GNU_SOURCE -fsanitize
 LDLIBS      := -lm
 
 LIB_SRC := src/tsc.c src/topo.c src/hist.c src/lock_registry.c \
-           src/lock_futex.c src/lock_spin.c src/lock_pthread.c
+           src/lock_futex.c src/lock_spin.c src/lock_pthread.c \
+           src/policy.c src/lock_adaptive.c src/cgroup.c
 HDRS    := $(wildcard src/*.h)
 BINS    := build/bench build/wakebench build/calib build/test_locks
 

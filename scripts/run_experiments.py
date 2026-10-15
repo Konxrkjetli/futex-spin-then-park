@@ -90,7 +90,10 @@ def main():
     t0 = time.time()
     invalid = 0
     for k, r in enumerate(todo, 1):
-        args = [BUILD / r["tool"], *r["args"]]
+        # "wrap" runs the tool inside a launcher, e.g. a systemd transient
+        # scope with a CPU quota (E7). The launcher passes the environment
+        # through and returns the tool's exit status.
+        args = [*r.get("wrap", []), BUILD / r["tool"], *r["args"]]
         base = out / "runs" / r["id"]
         if r["tool"] == "bench":
             args += ["--iters-per-ns", f"{calib['iters_per_ns']:.5f}",
@@ -124,6 +127,8 @@ def main():
         record = {"run_id": r["id"], "experiment": exp, "session": session_id, "commit": commit,
                   "machine_id": m["machine_id"], "started_at": started, "attempts": attempt + 1,
                   "meta": r["meta"], "args": [str(a) for a in r["args"]], "result": data}
+        if r.get("wrap"):
+            record["wrap"] = r["wrap"]
         base.with_suffix(".json").write_text(json.dumps(record) + "\n")
         with open(out / "runs.jsonl", "a") as f:
             f.write(json.dumps(record) + "\n")

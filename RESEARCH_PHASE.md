@@ -240,6 +240,147 @@ and the 8 locks S ∪ {pthread, pthread-adaptive}.
 | E6 | H3 session (Phase 3) | S1, S2, R1 at T ∈ {8, 16}, static and adaptive locks interleaved | 10 | H3 |
 | E7 | Throttled (Phase 3) | steady hold {1 µs, 10 µs}, T = 16, under `CPUQuota` {200%, 400%}, period 100 ms: 4 cases | 10 | H4 |
 
+### 5.8 Phase 3 protocol (written 2026-10-15, before any Phase 3 experiment data)
+
+This section fills in what `prereg-v1` left open for Phase 3: the exact
+policies, the tuning procedure, the E6/E7 lock lists and launcher, and how the
+H3/H4 intervals are computed. It changes **no** threshold, workload or verdict
+rule of `prereg-v1`. It is committed before the tuning session T3. The
+parameters chosen by T3 are committed in `config/policy.json` and tagged
+`prereg-v1-p3` before any E6–E8 data.
+
+**Locks** (`src/lock_adaptive.c`, `src/policy.c`). Every adaptive lock is the
+three-state futex lock of the static family, with the spin budget chosen on
+each slow path. `src/lock_futex.c` is unchanged, so the static locks run the
+code measured in Phase 2.
+
+- *Cost model shared by both policies (ski rental).* A waiter that would get
+  the lock by spinning after w ns pays cost(b) = w if w ≤ b, else b + C, with
+  C = β·Ŵ.
+  - Ŵ is a per-thread EWMA (α = 1/16) of the wake-up latency measured inside
+    the lock: the releaser stamps the TSC just before `FUTEX_WAKE`, and the
+    woken waiter subtracts that stamp when it returns.
+  - Samples are capped at 1 ms. The prior is the E1 reference median
+    m = 4728.9 ns.
+  - β is the one tuned parameter. It scales the measured wake latency into
+    the full cost of parking (the releaser's `FUTEX_WAKE`, the lost turn,
+    cache refill).
+- *Policy A* (`ada`): budget = clamp(β·Ŵ, 0, 151.3 µs).
+- *Policy B* (`hedge`): Hedge over K = 6 arms
+  {0, 2350, 4750, 9450, 37850, 151300} ns, i.e. {0, b1..b4, 32·m}.
+  - Learning: discounted cumulative cost with horizon N = 1024 slow-path
+    acquisitions (γ = 1 − 1/N), η = √(8 ln K / N).
+  - Each round's costs are shifted by their minimum and divided by C,
+    clipped at 1.
+  - Feedback is the whole counterfactual cost vector. It is exact for spin
+    acquisitions. For a parked acquisition, arms ≤ the chosen budget cost
+    b + C, and longer arms are imputed from the stamp of the release that let
+    the waiter in.
+  - The arm is drawn at random from the Hedge distribution.
+- *EXP3* (`exp3`, exploratory): same arms, but only the chosen arm's cost is
+  used, importance-weighted (cost / 2C, clipped at 1). The explore rate and η
+  use the standard horizon-N formulas, and β is the same as Policy B's.
+- *Throttle-aware* (`ta`): a base policy plus a helper thread that polls the
+  process's own cgroup `cpu.stat` every 1 ms while `cpu.max` sets a quota.
+  - Trigger: `nr_throttled` increased, or CPU usage over the last poll
+    reached 0.9 × quota/period.
+  - Effect: budget 0 ("park mode") for `hold` quota periods. A trigger during
+    park mode extends it. A trigger within one period after park mode ended
+    doubles `hold` (1 → 64 periods max); any later trigger resets it to 1.
+  - These detector parameters are fixed by design, not tuned.
+- All policy state is per thread. The policy update runs in `unlock` after
+  the release, so it never lengthens a critical section.
+
+**Disclosures before tuning.**
+1. *Design iteration on the tuning set.* The first Hedge version divided costs
+   by (largest arm + C). In a 1 s smoke run at T = 4, hold 1 µs (inside the
+   tuning set), it barely separated the arms: they kept 0.1–24% each. The
+   normalisation was changed to the shift-and-divide-by-C form above before
+   T3.
+2. *Smoke runs.* All development runs of the adaptive locks were steady T = 4
+   (tuning set) or the correctness test. No adaptive lock was run on an
+   H3 workload (S1/S2/R1 at T = 8/16) or an H4 case before the freeze.
+3. *Mechanism check of the throttled launcher.* One 1 s run each of `spin`
+   and `ta:base=hedge,beta=4` at T = 8, hold 1 µs, `CPUQuota=100%` (not an
+   H4 case). It checked the scope launcher, the throttling counters and the
+   detector.
+   - Both runs were throttled in 10 of 10 periods, and `ta` forced 100% of
+     its slow paths to park.
+   - p99.9 was 67 µs for spin and 499 µs for `ta`.
+   - No parameter was changed after this check.
+4. *Phase 2 results were known* when the policies were designed (they are in
+   the README). The design follows `BUILD_PHASE.md` §5.4–5.5; the numeric
+   choices are either derived from E1 (prior, arms) or tuned on T = 4 only.
+
+**Tuning session T3** (the tuning set allowed by `prereg-v1`).
+- Workloads: steady, T = 4, hold {100 ns, 1 µs, 10 µs, 50 µs}, think 1 µs,
+  2 s, pinned, 5 runs, seeded random order.
+- Locks: the static family S, plus `ada` and `hedge` with
+  β ∈ {1, 2, 4, 8, 16}.
+- Scoring, for each candidate c and hold h:
+  - B\*_h = best static lock, by the §5.6 rule;
+  - thr ratio = throughput(c) / throughput(B\*_h);
+  - tail ratio = p99.9(c) / p99.9(B\*_h), from histograms pooled over runs;
+  - the hold *passes* if thr ratio ≥ 0.85 and tail ratio ≤ 1.2.
+- Selection, per policy:
+  1. most holds passed;
+  2. then the highest worst-case thr ratio (differences of 0.01 or less are
+     ties);
+  3. then the lowest worst-case tail ratio;
+  4. then the smaller β.
+- EXP3 uses Policy B's β. The throttle-aware base is the better of the two
+  winners by the same order; a full tie goes to `ada`.
+- `scripts/choose_policy.py` writes the result to `config/policy.json`.
+
+**E6 (H3).** As §5.7: S1 and S2 as in E4, R1 as in E5, T ∈ {8, 16}, 10 runs,
+one session, seeded random order. Locks:
+- S, `pthread`, `pthread-adaptive`;
+- `ada` and `hedge` (confirmatory);
+- `exp3` and `ta` (exploratory).
+
+**E7 (H4).**
+- Workload: steady, hold {1 µs, 10 µs}, think 1 µs, T = 16, 2 s, pinned,
+  10 runs.
+- Each run gets its own systemd transient scope:
+  `systemd-run --user --scope -p CPUQuota={200,400}% -p CPUQuotaPeriodSec=100ms`.
+- Locks: S, `pthread`, `pthread-adaptive`, `ada`, `hedge`, `ta`.
+- Throttling counters (`cpu.stat` deltas over the measured window) are
+  recorded per run.
+- Exploratory unthrottled reference: the same runs in a scope without a
+  quota, 5 runs.
+
+**E8 (exploratory).** The E2 steady grid (4 holds × T {4, 8, 16, 32}),
+3 runs, with locks `ada`, `hedge`, `exp3`, `ta`, plus `park` and `spin` as
+anchors for session drift against E2.
+
+**Clarification C2 (H3/H4 computation).**
+- H3 span: all non-transition harness phases. Throughput per run = ops in the
+  span / span duration, then mean over runs. p99.9 is pooled over the span's
+  phases and all runs.
+- Bootstrap: 2,000 resamples, runs resampled with replacement independently
+  for each lock.
+  - B\* (H3) is recomputed by the §5.6 rule in every resample, as "best
+    after the shift" was in C1.
+  - The minimum over S in H4(b) is recomputed in every resample.
+- Verdicts:
+  - Bounds combine per C1.
+  - Overall verdict: SUPPORTED if met in every case; REFUTED if not met in
+    every case; PARTIALLY SUPPORTED if met in at least one; otherwise
+    INCONCLUSIVE.
+
+**Exploratory analyses** (labelled as such, not tests):
+- per-phase adaptive vs best static, transition windows excluded;
+- throughput regret against B\* over 10 ms windows;
+- regret in the policies' own cost model (cost paid minus the best fixed arm
+  in hindsight);
+- arm use and mean budget over time;
+- fairness: Jain's index, worst-thread p99, and the waiting-time-weighted
+  latency distribution (the barging view raised in the Phase 2 review);
+- CPU use;
+- EXP3 vs Hedge, and `ta` vs its base policy without a quota;
+- wake latency measured inside the lock vs E1;
+- throttling counters.
+
 ---
 
 ## 6. Statistical analysis plan

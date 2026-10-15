@@ -1,4 +1,5 @@
-"""Experiment matrix, as pre-registered in RESEARCH_PHASE.md section 5.7.
+"""Experiment matrix, as pre-registered in RESEARCH_PHASE.md section 5.7
+(Phase 3 additions: section 5.8).
 
 Each experiment is a function returning a list of run specs:
     {"id": unique run id, "tool": "bench" | "wakebench", "args": [...], "meta": {...}}
@@ -10,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BUDGETS_FILE = ROOT / "config" / "budgets.json"
+POLICY_FILE = ROOT / "config" / "policy.json"
 
 THINK_NS = 1000
 WARMUP_MS = 200
@@ -153,4 +155,166 @@ def e5():
     return [random_run("e5", l, t, r) for l in all_locks() for t in (8, 16) for r in range(10)]
 
 
-EXPERIMENTS = {"e1": e1, "e2": e2, "e3": e3, "e4": e4, "e5": e5}
+# ---- Phase 3: adaptive locks (RESEARCH_PHASE.md 5.8) ------------------------
+
+def policy_common():
+    """Parameters shared by every adaptive lock, derived from E1 and the static
+    budgets: prior wake latency = E1 reference median m; arms = {0, b1..b4,
+    32 m rounded to 50 ns}."""
+    b = json.loads(BUDGETS_FILE.read_text())
+    m = b["reference_median_ns"]
+    arms = [0, *b["budgets_ns"], int(round(32 * m / 50.0)) * 50]
+    return {"w0_ns": m, "arms_ns": arms, "window": 1024, "alpha": 0.0625, "wcap_ns": 1e6}
+
+
+def policy_spec(kind, beta, base=None, ta=None):
+    c = policy_common()
+    parts = []
+    if kind == "ta":
+        parts.append(f"base={base}")
+    parts += [f"beta={beta:g}", f"w0={c['w0_ns']:g}", "arms=" + "/".join(f"{a:g}" for a in c["arms_ns"]),
+              f"window={c['window']:g}", f"alpha={c['alpha']:g}", f"wcap={c['wcap_ns']:g}"]
+    if kind == "ta":
+        parts += [f"poll={ta['poll_us']:g}", f"theta={ta['theta']:g}",
+                  f"hmin={ta['hold_min']}", f"hmax={ta['hold_max']}"]
+    return f"{kind}:" + ",".join(parts)
+
+
+# Throttle-aware detector parameters, fixed by design before any throttled
+# data (not tuned): 1 ms polls, "imminent" at 90% of the quota, park-mode
+# hold-off from 1 to 64 quota periods.
+TA_PARAMS = {"poll_us": 1000, "theta": 0.9, "hold_min": 1, "hold_max": 64}
+
+
+def tuned_locks():
+    """(label, spec) of the frozen adaptive locks from config/policy.json."""
+    if not POLICY_FILE.exists():
+        raise SystemExit("config/policy.json missing: run t3 and scripts/choose_policy.py first")
+    pol = json.loads(POLICY_FILE.read_text())
+    ta = pol["ta"]
+    return {"ada": policy_spec("ada", pol["ada"]["beta"]),
+            "hedge": policy_spec("hedge", pol["hedge"]["beta"]),
+            "exp3": policy_spec("exp3", pol["exp3"]["beta"]),
+            "ta": policy_spec("ta", ta["beta"], base=ta["base"], ta=ta)}
+
+
+def lock_entries(names):
+    """[(label, spec)] for static/baseline names and tuned adaptive labels."""
+    tuned = None
+    out = []
+    for n in names:
+        if n in ("ada", "hedge", "exp3", "ta"):
+            tuned = tuned or tuned_locks()
+            out.append((n, tuned[n]))
+        else:
+            out.append((n, n))
+    return out
+
+
+def with_spec(run, label, spec):
+    """Replace --lock in a run built for `label` by the full spec."""
+    args = run["args"]
+    args[args.index("--lock") + 1] = spec
+    run["meta"]["lock"] = label
+    run["meta"]["spec"] = spec
+    return run
+
+
+# ---- T3: tuning session (steady, T = 4 only) ------------------------------
+
+T3_BETAS = [1, 2, 4, 8, 16]
+T3_RUNS = 5
+
+
+def t3_candidates():
+    out = []
+    for kind in ("ada", "hedge"):
+        for b in T3_BETAS:
+            out.append((f"{kind}-b{b}", policy_spec(kind, b)))
+    return out
+
+
+def t3():
+    locks = [(l, l) for l in static_family()] + t3_candidates()
+    runs = []
+    for label, spec in locks:
+        for h in E2_HOLDS:
+            for r in range(T3_RUNS):
+                runs.append(with_spec(steady_run("t3", label, h, 4, r, E2_MS), label, spec))
+    return runs
+
+
+# ---- E6: H3 session (S1, S2, R1 at T in {8, 16}) ---------------------------
+
+E6_RUNS = 10
+
+
+def e6_locks():
+    names = static_family() + ["pthread", "pthread-adaptive", "ada", "hedge", "exp3", "ta"]
+    return lock_entries(names)
+
+
+def e6():
+    runs = []
+    for label, spec in e6_locks():
+        for t in E4_THREADS:
+            for r in range(E6_RUNS):
+                for sched in ("S1", "S2"):
+                    runs.append(with_spec(phase_run("e6", sched, label, t, r), label, spec))
+                runs.append(with_spec(random_run("e6", label, t, r), label, spec))
+    return runs
+
+
+# ---- E7: throttled (H4) ------------------------------------------------------
+
+E7_HOLDS = [1000, 10000]
+E7_QUOTAS = [200, 400]          # CPUQuota percent, period 100 ms
+E7_THREADS = 16
+E7_RUNS = 10
+E7_REF_RUNS = 5                 # exploratory unthrottled reference (no quota)
+
+
+def e7_locks():
+    return lock_entries(static_family() + ["pthread", "pthread-adaptive", "ada", "hedge", "ta"])
+
+
+def scope_wrap(quota):
+    w = ["systemd-run", "--user", "--scope", "--quiet", "--collect"]
+    if quota is not None:
+        w += ["-p", f"CPUQuota={quota}%", "-p", "CPUQuotaPeriodSec=100ms"]
+    return w + ["--"]
+
+
+def e7():
+    runs = []
+    for label, spec in e7_locks():
+        for h in E7_HOLDS:
+            for quota, nruns in [(q, E7_RUNS) for q in E7_QUOTAS] + [(None, E7_REF_RUNS)]:
+                for r in range(nruns):
+                    run = with_spec(steady_run("e7", label, h, E7_THREADS, r, E2_MS), label, spec)
+                    qtag = f"q{quota}" if quota else "qnone"
+                    run["id"] = run["id"].replace("e7_", f"e7_{qtag}_", 1)
+                    run["wrap"] = scope_wrap(quota)
+                    run["meta"].update({"quota_pct": quota, "period_ms": 100,
+                                        "confirmatory": quota is not None})
+                    runs.append(run)
+    return runs
+
+
+# ---- E8: adaptive locks on the steady grid (exploratory) ---------------------
+
+E8_RUNS = 3
+
+
+def e8():
+    runs = []
+    for label, spec in lock_entries(["ada", "hedge", "exp3", "ta", "park", "spin"]):
+        for h in E2_HOLDS:
+            for t in E2_THREADS:
+                for r in range(E8_RUNS):
+                    runs.append(with_spec(steady_run("e8", label, h, t, r, E2_MS), label, spec))
+    return runs
+
+
+EXPERIMENTS = {"e1": e1, "e2": e2, "e3": e3, "e4": e4, "e5": e5,
+               "t3": t3, "e6": e6, "e7": e7, "e8": e8}

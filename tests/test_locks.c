@@ -26,6 +26,7 @@
 
 static const char *default_specs[] = {
     "park", "spin", "stp:100", "stp:2000", "pthread", "pthread-adaptive",
+    "ada", "ada:beta=8", "hedge", "hedge:beta=8,window=64", "exp3", "ta", "ta:base=ada",
 };
 static const int thread_counts[] = { 2, 8, 32 };
 
@@ -33,7 +34,7 @@ static struct {
     alignas(PAD_BYTES) uint64_t counter;           /* protected by the lock */
     alignas(PAD_BYTES) _Atomic int in_cs;
     alignas(PAD_BYTES) _Atomic uint64_t overlaps;
-    alignas(PAD_BYTES) _Atomic uint64_t slow, spin_acq, parks, wakes;
+    alignas(PAD_BYTES) _Atomic uint64_t slow, spin_acq, parks, wakes, forced, wake_n;
 } sh;
 
 static const struct lock_ops *g_ops;
@@ -75,6 +76,8 @@ static void *worker(void *arg)
     atomic_fetch_add(&sh.spin_acq, lk_stats.spin_acq);
     atomic_fetch_add(&sh.parks, lk_stats.parks);
     atomic_fetch_add(&sh.wakes, lk_stats.wakes);
+    atomic_fetch_add(&sh.forced, lk_stats.forced);
+    atomic_fetch_add(&sh.wake_n, lk_stats.wake_n);
     return NULL;
 }
 
@@ -95,6 +98,8 @@ static int run_one(const char *spec, int threads, uint64_t total)
     atomic_store(&sh.spin_acq, 0);
     atomic_store(&sh.parks, 0);
     atomic_store(&sh.wakes, 0);
+    atomic_store(&sh.forced, 0);
+    atomic_store(&sh.wake_n, 0);
     snprintf(g_current, sizeof g_current, "%s T=%d", spec, threads);
 
     pthread_t th[64];
@@ -109,14 +114,17 @@ static int run_one(const char *spec, int threads, uint64_t total)
     uint64_t expect = g_iters * (uint64_t)threads;
     uint64_t overlaps = atomic_load(&sh.overlaps);
     int ok = sh.counter == expect && overlaps == 0;
-    printf("%s %-18s T=%-2d counter=%llu/%llu overlaps=%llu slow=%llu spin_acq=%llu parks=%llu wakes=%llu %.0fms\n",
+    printf("%s %-22s T=%-2d counter=%llu/%llu overlaps=%llu slow=%llu spin_acq=%llu parks=%llu wakes=%llu "
+           "forced=%llu wake_samples=%llu %.0fms\n",
            ok ? "PASS" : "FAIL", spec, threads,
            (unsigned long long)sh.counter, (unsigned long long)expect,
            (unsigned long long)overlaps,
            (unsigned long long)atomic_load(&sh.slow),
            (unsigned long long)atomic_load(&sh.spin_acq),
            (unsigned long long)atomic_load(&sh.parks),
-           (unsigned long long)atomic_load(&sh.wakes), ms);
+           (unsigned long long)atomic_load(&sh.wakes),
+           (unsigned long long)atomic_load(&sh.forced),
+           (unsigned long long)atomic_load(&sh.wake_n), ms);
     fflush(stdout);
     lock_free(g_ops, g_lock);
     return ok ? 0 : 1;

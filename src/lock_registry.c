@@ -7,6 +7,7 @@
 __thread struct lock_tstats lk_stats;
 
 extern const struct lock_ops park_ops, stp_ops, spin_ops, pthread_ops, pthread_adaptive_ops;
+extern const struct lock_ops ada_ops, hedge_ops, exp3_ops, ta_ops;
 
 /* No-op lock: harness baseline for single-thread runs only. */
 static void none_init(void *l, const struct lock_params *p) { (void)l; (void)p; }
@@ -18,6 +19,7 @@ static const struct lock_ops none_ops = {
 
 static const struct lock_ops *const registry[] = {
     &park_ops, &spin_ops, &stp_ops, &pthread_ops, &pthread_adaptive_ops, &none_ops,
+    &ada_ops, &hedge_ops, &exp3_ops, &ta_ops,
 };
 #define NLOCKS (sizeof registry / sizeof registry[0])
 
@@ -31,6 +33,8 @@ const struct lock_ops *lock_lookup(const char *spec, struct lock_params *p)
         const struct lock_ops *o = registry[i];
         if (strlen(o->name) != len || strncmp(o->name, spec, len) != 0)
             continue;
+        if (o->parse)
+            return o->parse(colon ? colon + 1 : "", p) == 0 ? o : NULL;
         if (o->arg_name) {
             if (!colon)
                 return NULL;
@@ -67,7 +71,9 @@ void lock_free(const struct lock_ops *ops, void *l)
 void lock_list(FILE *f)
 {
     for (size_t i = 0; i < NLOCKS; i++) {
-        if (registry[i]->arg_name)
+        if (registry[i]->parse)
+            fprintf(f, "%s[:%s]\n", registry[i]->name, registry[i]->arg_name);
+        else if (registry[i]->arg_name)
             fprintf(f, "%s:<%s>\n", registry[i]->name, registry[i]->arg_name);
         else
             fprintf(f, "%s\n", registry[i]->name);
