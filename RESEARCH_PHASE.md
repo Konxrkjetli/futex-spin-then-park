@@ -84,12 +84,18 @@ go-ahead, 2026-10-14 22:25 IST.
 
 ### 3.4 Results table (to be filled only after analysis)
 
+H3 and H4 come from E6 and E7 (Phase 3, sessions 2026-10-15), analysed by
+`scripts/analyze.py e6` / `e7` under the rules of §5.6, §6.1, C1 and C2. Full
+tables: `docs/results/e6.md`, `docs/results/e7.md`. Interpretation and the
+exploratory context (barging, starved threads, a B\*-fixed sensitivity view)
+are in README §12; they do not change these verdicts.
+
 | Hypothesis | Threshold | Observed result | Verdict |
 |---|---|---|---|
 | H1 | slowest/fastest median ≥ 2× | other-core/10 ms idle 30.72 µs ÷ other-core/20 µs idle 2.73 µs = **11.27** (95% CI 11.18–11.37; worst-case run ratio 9.59) | **SUPPORTED** |
 | H2 | loss ≥ 25% or p99 ratio ≥ 2×, in each of 4 cases | S1 T=8: 0→1 not met (loss 3.2%, p99 ratio 1.00), 1→2 not met (1.8%, 1.64). S1 T=16: 0→1 met (loss 43.1%), 1→2 met (p99 ratio 2.59) | **PARTIALLY SUPPORTED** (2/4) |
-| H3 | throughput ≥ 0.85× and p99.9 ≤ 1.2× of best static, on each of 6 workloads (per policy) | PENDING | PENDING |
-| H4 | p99.9 ≥ 2× lower than spin and ≤ 1.10× best static, in each of 4 cases | PENDING | PENDING |
+| H3 | throughput ≥ 0.85× and p99.9 ≤ 1.2× of best static, on each of 6 workloads (per policy) | **Policy A (`ada`)**: met S2 T=16; not met S1 T=8 (p99.9 4.60×), S1 T=16 (throughput 0.78×), R1 T=16 (p99.9 1.45×); inconclusive S2 T=8, R1 T=8 (p99.9 interval spans 1.2). **Policy B (`hedge`)**: met S1 T=8, S2 T=16, R1 T=16; not met S1 T=16 (throughput 0.79×); inconclusive S2 T=8 (p99.9), R1 T=8 (throughput 0.84×, CI 0.81–0.86; p99.9) | **A: PARTIALLY SUPPORTED** (1 met / 3 not met / 2 inconclusive); **B: PARTIALLY SUPPORTED** (3 / 1 / 2) |
+| H4 | p99.9 ≥ 2× lower than spin and ≤ 1.10× best static, in each of 4 cases | Hold 1 µs: met at 200% (spin/ta 60.8, ta/best static 0.99 vs park) and 400% (55.4, 0.98). Hold 10 µs: not met at 200% (ta/best static 1770× vs stp:37850; spin/ta 2.17 inconclusive) and 400% (1608×; 2.17 inconclusive) | **PARTIALLY SUPPORTED** (2/4) |
 
 ---
 

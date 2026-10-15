@@ -2,8 +2,8 @@
 
 Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Times are IST.
 
-**Current phase:** Phase 3 in progress (go-ahead 2026-10-15 21:52 IST)
-**Results status:** H1 SUPPORTED, H2 PARTIALLY SUPPORTED (Phase 2). H3, H4 pending (Phase 3).
+**Current phase:** Phase 3 complete (2026-10-16 00:09 IST), awaiting review before Phase 4
+**Results status:** H1 SUPPORTED, H2 PARTIALLY SUPPORTED (Phase 2). H3 PARTIALLY SUPPORTED for Policy A (1/6) and Policy B (3/6); H4 PARTIALLY SUPPORTED (2/4) (Phase 3).
 
 ---
 
@@ -12,8 +12,8 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | Phase | Window | Status | Started | Finished |
 |---|---|---|---|---|
 | 1. Foundation | 22:00 – 01:00 | **Done** (awaiting review) | 21:55 | 22:15 |
-| 2. Pre-registration + static experiments | 01:00 – 03:30 | **Done** (awaiting review) | 22:25 | 23:59 |
-| 3. Adaptive + throttling | 03:30 – 06:30 | **In progress** | 15 Oct 21:52 | |
+| 2. Pre-registration + static experiments | 01:00 – 03:30 | **Done** (accepted with the Phase 3 go-ahead) | 22:25 | 23:59 |
+| 3. Adaptive + throttling | 03:30 – 06:30 | **Done** (awaiting review) | 15 Oct 21:52 | 16 Oct 00:09 |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started | | |
 
 ---
@@ -66,10 +66,11 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 - [x] Policy overhead measured (`calib policy`, `calib timer`)
 - [x] Phase 3 protocol written before any Phase 3 data (RESEARCH_PHASE §5.8)
 - [x] Tuning session T3 (steady T = 4, 320 runs, 0 invalid) → `config/policy.json` (ada β = 8, hedge β = 8, ta base = ada), tag `prereg-v1-p3`
-- [ ] Adaptive locks on steady / phase-changing / randomized workloads
-- [ ] Throttle-aware variant
-- [ ] Throttled runs (H4)
-- [ ] Data committed
+- [x] Adaptive locks on steady / phase-changing / randomized workloads (E6: 720 runs; E8: 288 runs; 0 invalid)
+- [x] Throttle-aware variant (`ta`, built with the other locks)
+- [x] Throttled runs (H4) (E7: 550 runs, 0 invalid)
+- [x] Analysis: H3, H4 verdicts → RESEARCH_PHASE §3.4; README §12
+- [x] Data committed
 
 ## Phase 4: Analysis + write-up
 
@@ -103,6 +104,8 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | D14 | Phase 2 review questions resolved by the go-ahead "complete the phase 3": (1) per-thread / waiting-time-weighted latency added as **exploratory** analysis only; (2) boost stays **on** (same as Phase 2, so E6 static locks are comparable with E4/E5) | No change requested by the team | 2026-10-15 21:52 |
 | D15 | Hedge cost normalisation changed after a tuning-set smoke run (range-normalised → shifted by the round minimum and divided by C) | Range normalisation made per-acquisition differences ~0.5% of the range; Hedge did not separate arms. Tuning set only (T = 4 steady); disclosed in §5.8 | 2026-10-15 22:11 |
 | D16 | Harness additions for Phase 3: per-window slow-path counters, cgroup counters, per-thread tail quantiles, lock report (output only; one index comparison per op in the hot loop) | Needed for adaptation time series, H4 and the barging view. E6/E7 compare static and adaptive locks within one session, so the change applies to both sides | 2026-10-15 22:15 |
+| D17 | Exploratory views added after seeing E6/E7 data: B*-fixed sensitivity for H3, runs with a starved thread, policy internals (arm shares, cost-model regret), `ta` detector counters, in-lock wake latency (E8) | Explain the confirmatory results (barging, B* switching, detector behaviour). Labelled exploratory; confirmatory computation unchanged | 2026-10-16 00:05 |
+| D18 | Not done in Phase 3: wake-up latency under throttling (RQ1 condition), a per-window park-mode time metric, LD_PRELOAD stretch goal | Time / scope; listed in README §12.8 | 2026-10-16 00:09 |
 | D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
 
 ## Log
@@ -143,3 +146,13 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 22:15 | Phase 3 protocol (RESEARCH_PHASE §5.8, C2) written; committed `7df4987` (22:15:45) before T3 |
 | 22:15:50 | T3 started (first Phase 3 data) |
 | 22:29 | T3 done: 320 runs, 0 invalid, 13.4 min. Rule applied: ada β = 8 (4/4 tuning holds within the H3 bounds), hedge β = 8 (2/4: p99.9 6.3× at 1 µs, throughput 0.91× at 10 µs), ta base = ada |
+| 22:29:46 | `config/policy.json` committed (`d9a009b`), tagged `prereg-v1-p3` |
+| 22:31 | E6/E7 analysis dry-run on a miniature scratch dataset (2 runs, phases ÷ 10; not research data) found one bug (E7 per-second columns assumed 2 s); fixed, committed `7744476` (analysis only) |
+| 22:32:09 | E6 started (first H3 data), chain E6 → E7 → E8 |
+| 23:26 | E6 done: 720 runs, 0 invalid, 54.1 min; E7 started 23:26:18 |
+| 23:49 | E7 done: 550 runs, 0 invalid, 23.2 min |
+| **16 Oct** | |
+| 00:01 | E8 done: 288 runs, 0 invalid, 12.1 min. Overheads recorded (`results/overhead/`, 3 repeats) |
+| 00:03 | Analyses run: **H3 PARTIALLY SUPPORTED** for ada (1 met / 3 not met / 2 inconclusive) and hedge (3 / 1 / 2); **H4 PARTIALLY SUPPORTED** (2/4: met at 1 µs holds, not met at 10 µs) |
+| 00:05 | Exploratory views added (D17); starvation verified from raw per-thread counts (all in S1's 20 µs phase; E7 10 µs holds) |
+| 00:09 | README §12, RESEARCH_PHASE §3.4, PROGRESS updated; claims checked against the generated tables (15 wording fixes before commit, incl. one wrong claim about Hedge's per-phase behaviour, found after fixing a per-phase budget bug in the analysis); Phase 3 committed; awaiting review |

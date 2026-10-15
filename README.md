@@ -9,8 +9,11 @@ This README is the **living record** of the project: what exists, how it works,
 why it was built this way, what has been checked, and what is still open. It
 is updated at the end of every phase.
 
-> **Results status: PENDING.** No experiment data has been collected. The
-> numbers below come from harness validation (pilot runs) and are not results.
+> **Results status (Phases 1–3):** H1 SUPPORTED; H2 PARTIALLY SUPPORTED
+> (2/4); H3 PARTIALLY SUPPORTED for both Policy A (1/6 met) and Policy B (3/6
+> met); H4 PARTIALLY SUPPORTED (2/4). Verdicts are in RESEARCH_PHASE.md §3.4;
+> Phase 2 results are in §11 and Phase 3 results in §12. §7 reports harness
+> validation (pilot runs), which are not results.
 
 ---
 
@@ -19,8 +22,8 @@ is updated at the end of every phase.
 | Phase | Window (IST, 14–15 Oct 2026) | Status |
 |---|---|---|
 | 1. Foundation: locks, harness, wake-up benchmark, validation | 22:00 – 01:00 | **Done** (reviewed, approved 22:25) |
-| 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | **Done** 23:59, awaiting review. H1 supported, H2 partially supported |
-| 3. Adaptive locks + throttling (RQ3, H4) | 03:30 – 06:30 | Not started |
+| 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | **Done** 23:59 (accepted with the Phase 3 go-ahead). H1 supported, H2 partially supported |
+| 3. Adaptive locks + throttling (RQ3, H3, H4) | 03:30 – 06:30 (run 15 Oct 21:52 – 16 Oct 00:09) | **Done**, awaiting review. H3 partially supported (A 1/6, B 3/6), H4 partially supported (2/4) |
 | 4. Analysis + write-up | 06:30 – 09:30 | Not started |
 
 Detailed checklist and event log: [`PROGRESS.md`](PROGRESS.md). Plan: [`TIMELINE.md`](TIMELINE.md).
@@ -370,6 +373,12 @@ Full snapshot: `results/manifests/` (`make manifest`).
    `TIMELINE.md` §5 were written *before* any pilot run. This disclosure goes
    into the paper's methodology.
 
+6. **Phase 3 issues** (details in §12.8):
+   - pooled p99.9 hides starved threads under long holds;
+   - T = 4 is a weak tuning set;
+   - `ta`'s 1 ms "imminent" rule fires falsely on short usage spikes;
+   - Hedge's imputation for parked waiters leans toward parking.
+
 ---
 
 ## 11. Phase 2: pre-registration and static experiments (done)
@@ -622,22 +631,26 @@ long as a block costs" rule. β is the one parameter that was tuned.
 - These parameters were fixed by design before any throttled data and were
   not tuned.
 
-**Overheads** (`calib policy`, `calib timer`; single thread):
+**Overheads** (`calib policy`, `calib timer`; single thread, 3 repeats,
+range shown; raw output in `results/overhead/`):
 
 | | choose (slow path, before spinning) | update (after release) | uncontended lock+unlock |
 |---|---|---|---|
-| park (static) | – | – | 2.87 ns |
-| ada | 0.3 ns | 14.7 ns | 3.16 ns |
-| hedge | 10.5 ns | 27.9 ns | 3.16 ns |
-| exp3 | 10.5 ns | 18.4 ns | 3.15 ns |
-| ta | as base | as base | 3.36 ns |
+| park (static) | – | – | 2.93–3.21 ns |
+| ada | 0.2–0.3 ns | 15.3–15.5 ns | 3.38–3.42 ns |
+| hedge | 10.5–10.8 ns | 29.6–30.2 ns | 3.39–3.52 ns |
+| exp3 | 10.5–10.6 ns | 19.3–19.7 ns | 3.39–3.44 ns |
+| ta | as base (ada) | as base | 3.18–3.38 ns |
+
+The uncontended path costs 0.2–0.5 ns more than `park`. The adaptive
+`unlock` also checks for a pending policy update.
 
 Neither cost lands inside a critical section. The choice happens while the
 lock is held by someone else, and the update runs after the release.
 
 **Correctness.** 39/39 counter tests pass (13 lock specs × T = 2, 8, 32), and
 ThreadSanitizer reports 0 warnings. `ta` also passes inside a 50% CPU quota,
-where 60–90% of its slow paths were forced to park, so that path is
+where 51–90% of its slow paths were forced to park, so that path is
 exercised.
 
 ### 12.2 Protocol (RESEARCH_PHASE.md §5.8, written before any Phase 3 data)
@@ -658,3 +671,224 @@ Disclosed in the protocol:
   spin's p99.9 (67 µs) was *lower* than `ta`'s (499 µs). Nothing was changed
   after it.
 - The Phase 2 results were known when the policies were designed.
+
+### 12.3 Tuning (T3, steady T = 4 only) and the frozen parameters
+
+T3 ran 320 runs (0 invalid, 13.4 min, 22:15–22:29): the static family, plus
+`ada` and `hedge` with β ∈ {1, 2, 4, 8, 16}, at 4 hold times with 5 runs each.
+Full table: `docs/results/t3.md`. The pre-declared rule selected:
+
+| Policy | Chosen | Tuning holds within both H3 bounds | Worst throughput ratio | Worst p99.9 ratio |
+|---|---|---|---|---|
+| A (`ada`) | β = 8 | 4/4 | 0.982 | 1.04 |
+| B (`hedge`) | β = 8 | 2/4 | 0.911 (10 µs hold) | 6.29 (1 µs hold) |
+| `exp3` | β = 8 (Policy B's, by rule) | – | – | – |
+| `ta` | base `ada`, β = 8 | (as ada) | | |
+
+- **On the tuning set, `ada` with β = 8 behaves like the best static lock at
+  every hold.** Its budget is 8 × the in-lock wake latency, i.e. tens of
+  µs. That covers the waits at T = 4, so it spins through them, as
+  `stp:37850` does.
+- **Hedge falls short on the tuning set, at 2 of 4 holds.**
+  - It keeps drawing from several arms, so a fraction of waiters park.
+  - With barging, a parked waiter can be woken and lose the lock many times.
+    Each of those wakes costs the releaser a `FUTEX_WAKE`.
+  - Result: p99.9 of 165 µs vs spin's 26 µs at 1 µs holds, and 0.91×
+    throughput at 10 µs holds.
+  - The counterfactual imputation for parked waiters (the release that
+    finally admitted them) includes that starvation time, so long arms look
+    worse than they are.
+- These are in-sample results and not evidence for H3.
+
+The parameters were committed in `config/policy.json` (commit `d9a009b`,
+tag `prereg-v1-p3`, 22:29:46) before any E6–E8 data.
+
+### 12.4 Experiments run
+
+| ID | What | Runs | Status |
+|---|---|---|---|
+| T3 | Tuning (steady, T = 4) | 320 | done 22:29, 0 invalid |
+| E6 | H3 session: S1, S2, R1 × T {8, 16} × 12 locks | 720 | done 23:26, 0 invalid, 54.1 min |
+| E7 | Throttled (H4): hold {1, 10} µs × quota {200%, 400%} × 11 locks × 10 runs, plus an unthrottled reference (5 runs) | 550 | done 23:49, 0 invalid, 23.2 min |
+| E8 | Adaptive locks on the E2 steady grid (exploratory) | 288 | done 00:01, 0 invalid, 12.1 min |
+
+The E6 workloads use exactly the E4/E5 arguments. In E6, static and adaptive
+locks were interleaved in one seeded random order, so session drift cannot
+favour either side. Tables: `docs/results/{t3,e6,e7,e8}.md`. Time series:
+`results/analysis/e6_windows.csv` (mean budget, parks per slow path and forced
+parks per 10 ms window) and `e6_regret.csv` (cumulative ops against B\*).
+
+### 12.5 H3: PARTIALLY SUPPORTED for both policies
+
+Rule: throughput ≥ 0.85× **and** p99.9 ≤ 1.2× of B\*, the best static lock
+over the whole run with transition windows excluded.
+
+| Workload | B\* | `ada` throughput / p99.9 ratio | `hedge` throughput / p99.9 ratio | `ada` | `hedge` |
+|---|---|---|---|---|---|
+| S1 T=8 | stp:4750 | 0.994 / 4.60 | 0.999 / 1.01 | not met | **met** |
+| S1 T=16 | spin | 0.783 / 0.09 | 0.788 / 0.12 | not met | not met |
+| S2 T=8 | stp:2350 | 1.013 / 0.06 | 0.992 / 0.06 | inconclusive | inconclusive |
+| S2 T=16 | stp:9450 | 1.010 / 0.54 | 0.991 / 0.60 | **met** | **met** |
+| R1 T=8 | spin | 0.990 / 2.79 | 0.840 / 2.30 | inconclusive | inconclusive |
+| R1 T=16 | stp:37850 | 1.053 / 1.45 | 0.913 / 0.78 | not met | **met** |
+
+**Policy A (`ada`): 1 met, 3 not met, 2 inconclusive. Policy B (`hedge`): 3
+met, 1 not met, 2 inconclusive.** 95% intervals are in `docs/results/e6.md`.
+
+What the numbers say:
+
+1. **On throughput, `ada` keeps up with the best static lock.** It is at
+   0.99–1.05× of B\* on five of six workloads, and above it on S2 (T = 8 and
+   16) and R1 at T = 16. Hedge is at 0.91–1.0× on four workloads and 0.84× on
+   R1 at T = 8.
+2. **The one throughput miss for both policies (S1, T = 16) is structural.**
+   - B\* there is `spin`: a TTAS lock with backoff that is a different
+     algorithm from the futex lock.
+   - In the 100 ns phases, every spin-then-park lock reaches only 0.76–0.87×
+     of spin, whatever its budget. That includes `stp:37850`, which almost
+     never parks. The gap is in the futex lock's spin loop, not in the budget.
+   - No budget policy over that lock can reach B\* there. The same gap shows
+     in E8 (T = 16, 100 ns: 0.77× for every adaptive lock).
+   - In S1's long-hold phase, the adaptive locks match or beat the best
+     static lock (`ada` 1.02×, `ta` 1.07×), while spin falls to 0.57×.
+3. **The p99.9 misses are the barging effect from Phase 2.**
+   - In S1 at T = 8, the span p99.9 is set by the 20 µs-hold phase.
+   - B\* (`stp:4750`) parks there, and the releaser keeps re-taking the lock
+     through the fast path. Its p99.9 in that phase is 60 ns.
+   - `ada` spins for its turn: 47 µs. Its budget *rose* in that phase, from
+     39 to 79 µs, as the measured wake latency grew.
+   - Hedge did not adapt its budget per phase (a mean of 47 µs in every
+     phase; it keeps mixing arms). The waiters that drew short arms park, so
+     it barges like B\* (p99.9 40 ns in that phase) and passes for the same
+     reason `ada` fails.
+   - Per-phase budgets: `results/analysis/e6.json`, from the per-window
+     counters.
+   - The pooled per-acquisition p99.9 rewards barging, even though barging
+     starves threads (§12.7).
+4. **The inconclusive cases come from B\* switching between static locks.**
+   - In S2 at T = 8, `stp:2350` is B\* in only 54% of resamples, and the
+     candidates' p99.9 values differ by 10×.
+   - C2 recomputes B\* in every resample, as declared, so the p99.9 interval
+     spans the threshold even though the point estimate is 0.06.
+   - With B\* held fixed (sensitivity view, not the verdict), S2 T=8 is met
+     for both policies and R1 T=8 is not met for both. The fixed-B\* tally
+     would be A 2/6 and B 4/6.
+5. **Hedge's imputation leans toward parking, as anticipated in the design.**
+   - On R1 (10% of holds are 20 µs) it settled on the 2.35 µs arm for 97–99%
+     of slow paths. It used 2.0 cores, against 8.0 for B\* (spin) at T = 8,
+     and gave up 16% of the throughput.
+   - EXP3, which does not impute, kept spinning: 0.95× at T = 8, 0.98× at
+     T = 16.
+   - A parked waiter's imputed wait includes the time it lost to barging
+     before it got in, which makes long arms look expensive.
+
+### 12.6 H4: PARTIALLY SUPPORTED (2 of 4 cases)
+
+Rule: (a) p99.9(spin) / p99.9(ta) ≥ 2 **and** (b) p99.9(ta) ≤ 1.10 × the
+lowest static p99.9 under the same quota. T = 16, period 100 ms.
+
+| Case | (a) spin / ta | Lowest-p99.9 static | (b) ta / that lock | Result |
+|---|---|---|---|---|
+| hold 1 µs, 200% | 60.8 [58.4, 65.0] | park | 0.99 [0.89, 1.08] | **met** |
+| hold 1 µs, 400% | 55.4 [52.4, 59.3] | park | 0.98 [0.90, 1.07] | **met** |
+| hold 10 µs, 200% | 2.17 [1.96, 2.49] (inconclusive) | stp:37850 | 1770 | not met |
+| hold 10 µs, 400% | 2.17 [1.89, 2.47] (inconclusive) | stp:37850 | 1608 | not met |
+
+- **Throttling does inflate the tails of spin-heavy locks.** Spin's p99.9
+  rises from 297 µs unthrottled to 87.7 ms at 200% (1 µs holds), and its
+  throughput falls from 0.46 to 0.06 M ops/s.
+- **1 µs holds: the detector works as designed.**
+  - `ta` stayed in park mode the whole run and matched park's p99.9 (1.44 vs
+    1.46 ms at 200%).
+  - At 400% its "imminent" trigger kept the group from being throttled at
+    all: 0% of periods, 2.1 cores, p99.9 1.32 ms. Plain `ada` used 4.0 cores,
+    was throttled in 100% of periods, and had p99.9 5.52 ms.
+- **10 µs holds: forced parking is the wrong move.**
+  - The lowest-p99.9 static lock is `stp:37850`, which spins through the
+    holds and uses ~2 cores.
+    - At 400% it is never throttled.
+    - At 200% it is throttled in 89% of periods, but each stall is short and
+      its p99.9 stays at 23 µs.
+  - `ta` parks, and parking at long holds means barging: p99.9 of 36–41 ms
+    from the few acquisitions that wait behind a re-acquiring releaser.
+- **The detector also has a false-positive weakness.** At 10 µs, 400%, the
+  group was never throttled. Even so, `ta` spent ~2.1 s of its ~2.2 s
+  lifetime in park mode: 1 ms usage spikes crossed 90% of the quota while the
+  average (~2.2 cores) did not.
+- **What a better design would try (future work, not a post-hoc change):**
+  measure usage against the quota *within* the current period, rather than as
+  a 1 ms rate.
+
+### 12.7 Exploratory findings
+
+- **Pooled p99.9 hides complete starvation.**
+  - Count of runs in which an active thread got *zero* acquisitions in a
+    measured phase:
+    - E6 S1 (20 µs-hold phase): every futex-family lock, ours and glibc's,
+      in 2–10 of 10 runs (`ada` and `ta` in 10/10, `stp:4750` in 4/10);
+      spin in 0.
+    - E7 at 10 µs holds: `stp:37850` in 9–10 of 10 runs and `ada` in 8–10.
+      These are the locks with the *best* p99.9 there.
+  - The waiting-time-weighted p99 shows the same thing. Without a quota at
+    10 µs holds, it is 1.1–1.5 s for `stp:37850` and `ada`, compared with
+    2.3 ms for spin, which never starves anyone.
+  - Any tail comparison of futex locks under long holds needs a per-thread
+    view next to the pooled quantile.
+- **In-lock wake latency** (`ada`, E8): 1.4–5.2 µs in the cells with at
+  least 450 samples (holds ≤ 1 µs). That is the same order as E1's
+  shallow-idle medians (2.7–4.7 µs). Cells with long holds have few samples
+  (15–1,842), with means of 5–88 µs.
+- **E8 (steady grid, compared with E2).**
+  - `ada` is at 0.97–1.04× of E2's best static lock in 15 of 16 cells; the
+    exception is T = 16 at 100 ns (0.77×, the structural gap).
+  - Hedge is at 0.86–0.92× at 10 µs holds; EXP3 is at 0.75× at T = 4, 1 µs.
+  - The anchors re-run in E8 put session drift at 0–3% (park and spin
+    E8/E2 = 0.97–1.01).
+- **EXP3 vs Hedge: neither dominated.**
+  - Hedge was ahead on S1 T=8, S2 T=8 and S2 T=16 (0.99× vs 0.81× at S2
+    T=16).
+  - EXP3 was ahead on S1 T=16 and on both R1 workloads, where it avoids
+    Hedge's imputation bias.
+  - So the counterfactual feedback did not give a consistent advantage in
+    this design.
+- **`ta` without a quota tracks its base policy.** Its throughput is within
+  2.4% of `ada`'s on every E6 workload; with no quota, the helper only
+  re-reads `cpu.max` every 100 ms.
+- **Regret.**
+  - Against B\* in throughput, `ada` ends between −5.3% (ahead) and +1% on
+    five workloads, and at +21.7% on S1 T=16.
+  - In the cost model, Hedge's regret against its best fixed arm is −191 to
+    +38 ns per slow path.
+  - `ada`'s is negative by 4–8 µs on R1, because its continuous budget
+    (74–114 µs) falls between arms that the regret is measured against.
+
+### 12.8 Honest notes on Phase 3
+
+1. **The per-acquisition p99.9 that H3/H4 pre-register is dominated by
+   barging.** We kept the verdicts as computed. The starved-thread counts and
+   waiting-time-weighted quantiles are exploratory and were added after
+   seeing the data (D17).
+2. **T = 4 was a weak tuning set.** It cannot reveal costs that appear only at
+   T ≥ 8: SMT contention and the spin-loop gap at T = 16. Both policies were
+   tuned to spin long (β = 8), which suits T = 4.
+3. **`ta`'s detector parameters were chosen a priori, and one smoke check at
+   T = 8 / 100% was seen before E7** (disclosed in §5.8).
+4. **Boost was on** (D11/D14), the same as in Phase 2.
+5. **Not done in Phase 3:**
+   - wake-up latency under throttling (RQ1 lists it; E1 did not include it);
+   - a time-based park-mode metric per measured window (the detector's
+     `park_ms` covers the whole process lifetime);
+   - the LD_PRELOAD real-application stretch goal.
+
+### 12.9 Reproducing Phase 3
+
+```bash
+make && make test && make test-tsan
+python3 scripts/run_experiments.py t3        # tuning (13 min)
+python3 scripts/choose_policy.py             # -> config/policy.json (frozen at tag prereg-v1-p3)
+python3 scripts/run_experiments.py e6        # H3 (54 min)
+python3 scripts/run_experiments.py e7        # H4, needs systemd --user with the cpu controller delegated (23 min)
+python3 scripts/run_experiments.py e8        # exploratory (12 min)
+python3 scripts/analyze.py t3 e6 e7 e8       # -> docs/results/*.md, results/analysis/*.json|csv
+./build/calib policy; ./build/calib timer     # overheads (raw: results/overhead/)
+```

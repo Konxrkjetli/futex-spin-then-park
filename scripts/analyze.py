@@ -454,6 +454,7 @@ def analyze_t3():
 # ---- Phase 3 helpers --------------------------------------------------------------
 
 ADAPTIVE = ["ada", "hedge", "exp3", "ta"]
+E2_T = [4, 8, 16, 32]
 H3_POLICIES = ["ada", "hedge"]
 K_ARMS = 6
 
@@ -513,7 +514,8 @@ def run_extras(r, phases):
     k = K_ARMS
     arms = ls.get("cost_arm_ms", [0] * k)[:k]
     pol_regret = (ls["cost_real_ms"] - min(arms)) / ls["slow"] * 1e6 if ls.get("slow") and any(arms) else float("nan")
-    return {"jain": jain, "worst_thread_p99": worst, "cpu_util": res["cpu_util"],
+    starved = any(min(p["per_thread_ops"][:p["active"]]) == 0 for p in ph)
+    return {"jain": jain, "worst_thread_p99": worst, "cpu_util": res["cpu_util"], "starved": starved,
             "budget_mean_ns": ls.get("budget_mean_ns", 0.0),
             "forced_frac": ls.get("forced", 0) / ls["slow"] if ls.get("slow") else 0.0,
             "wake_mean_ns": ls.get("wake_mean_ns", 0.0), "wake_n": ls.get("wake_n", 0),
@@ -530,6 +532,18 @@ def mean_of(xs):
 def median_of(xs):
     xs = sorted(x for x in xs if x == x)
     return stats.quantile_sorted(xs, 0.5) if xs else float("nan")
+
+
+def phase_budget(exp, r, phase):
+    """Mean spin budget per slow path within one harness phase, from the
+    per-window counters (lock_stats only covers the whole run)."""
+    slow = bud = 0.0
+    with open(RES / exp / "runs" / f"{r['run_id']}.win.csv") as f:
+        for w in csv.DictReader(f):
+            if int(w["phase"]) == phase:
+                slow += int(w["slow"])
+                bud += float(w["budget_ns_sum"])
+    return bud / slow if slow else float("nan")
 
 
 def windows_series(exp, rs):
@@ -590,8 +604,25 @@ def analyze_e6():
 
         point, reps = boot_eval(evaluate, {l: len(thr[l]) for l in comp})
         bstar = point["bstar"]
+
+        # Sensitivity (exploratory, not the pre-registered rule): B* held at
+        # the point-estimate choice in every resample, as A* was in C1.
+        def evaluate_fixed(idx, b=bstar):
+            m = {l: stats.mean([thr[l][i] for i in idx[l]]) for l in [b] + H3_POLICIES}
+            pb = ts[b].quantile(idx[b], 0.999)
+            return {a: (m[a] / m[b], ts[a].quantile(idx[a], 0.999) / pb) for a in H3_POLICIES}
+
+        fpoint, freps = boot_eval(evaluate_fixed, {l: len(thr[l]) for l in [bstar] + H3_POLICIES})
+        sens = {}
+        for a in H3_POLICIES:
+            tci = stats.percentile_interval([r[a][0] for r in freps])
+            lci = stats.percentile_interval([r[a][1] for r in freps])
+            sens[a] = {"thr_ci": tci, "tail_ci": lci,
+                       "result": combine(verdict(fpoint[a][0], 0.85, tci),
+                                         verdict(fpoint[a][1], 1.2, lci, higher_is_support=False))}
         bstar_share = sum(r["bstar"] == bstar for r in reps) / len(reps)
-        wd = {"bstar": bstar, "bstar_share_in_bootstrap": bstar_share, "locks": {}, "phases": {}}
+        wd = {"bstar": bstar, "bstar_share_in_bootstrap": bstar_share, "locks": {}, "phases": {},
+              "sensitivity_fixed_bstar": sens}
 
         for a in [x for x in comp if x not in S]:
             tr, tl = point[a]
@@ -624,6 +655,7 @@ def analyze_e6():
                    "forced_frac": mean_of([e["forced_frac"] for e in ex]),
                    "wake_mean_ns": mean_of([e["wake_mean_ns"] for e in ex if e["wake_n"]]),
                    "policy_regret_ns_per_slow": mean_of([e["policy_regret_ns_per_slow"] for e in ex]),
+                   "starved_runs": sum(e["starved"] for e in ex), "runs": len(ex),
                    "arm_share": [mean_of([e["arm_share"][k] for e in ex]) for k in range(K_ARMS)]}
             wd["locks"].setdefault(l, {}).update(row)
             rows.append((l, row))
@@ -638,7 +670,7 @@ def analyze_e6():
                     wd["phases"].setdefault(str(L), {})[l] = {
                         "thr_mean": pthr, "p99": stats.hist_quantile(ph, 0.99), "p999": stats.hist_quantile(ph, 0.999),
                         "jain": stats.mean([r["result"]["phases"][i]["jain"] for r in rs]),
-                        "budget_mean_ns": mean_of([run_extras(r, [i])["budget_mean_ns"] for r in rs])}
+                        "budget_mean_ns": mean_of([phase_budget("e6", r, i) for r in rs])}
 
             # windows: regret against B* and adaptation time series
             ws = windows_series("e6", rs)
@@ -666,8 +698,8 @@ def analyze_e6():
         data["workloads"][wl] = wd
 
         md += [f"## {sc}, T={t} (B* = {bstar}; chosen in {bstar_share:.0%} of bootstrap resamples)", "",
-               "| Lock | Throughput (M ops/s) | vs B* | p50 | p99 | p99.9 | p99.9 vs B* | Wait-weighted p50 / p99 | Jain | Worst-thread p99 (median run) | CPU (cores) | Mean budget | Regret vs B* |",
-               "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+               "| Lock | Throughput (M ops/s) | vs B* | p50 | p99 | p99.9 | p99.9 vs B* | Wait-weighted p50 / p99 | Jain | Worst-thread p99 (median run) | Runs with a starved thread | CPU (cores) | Mean budget | Regret vs B* |",
+               "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
         b = wd["locks"][bstar]
         for l, row in sorted(rows, key=lambda x: -x[1]["thr_mean"]):
             reg = wd["locks"][l].get("final_regret_frac")
@@ -675,7 +707,7 @@ def analyze_e6():
             md.append(f"| {l}{' (B*)' if l == bstar else ''} | {row['thr_mean']/1e6:.3f} | {row['thr_mean']/b['thr_mean']:.3f} | "
                       f"{fmt_ns(row['p50'])} | {fmt_ns(row['p99'])} | {fmt_ns(row['p999'])} | {row['p999']/b['p999']:.2f} | "
                       f"{fmt_ns(row['wait_weighted_p50'])} / {fmt_ns(row['wait_weighted_p99'])} | {row['jain']:.3f} | "
-                      f"{fmt_ns(row['worst_thread_p99'])} | {row['cpu_util']:.2f} | {bud} | "
+                      f"{fmt_ns(row['worst_thread_p99'])} | {row['starved_runs']}/{row['runs']} | {row['cpu_util']:.2f} | {bud} | "
                       f"{'–' if reg is None else f'{reg:+.1%}'} |")
         md.append("")
         if wd["phases"]:
@@ -690,6 +722,15 @@ def analyze_e6():
                     cells += [f"{x['thr_mean']/1e6:.3f} ({x['thr_mean']/best:.2f})", fmt_ns(x["p999"])]
                 md.append(f"| {l} | " + " | ".join(cells) + " |")
             md += ["", "(ratio in brackets: vs the best static lock in that phase)", ""]
+        md += ["Policy internals (exploratory): share of slow paths per arm "
+               "{0, 2.35, 4.75, 9.45, 37.85, 151.3} µs, and regret in the policy's own cost model "
+               "(cost paid minus the best fixed arm in hindsight, per slow path).", "",
+               "| Lock | Mean budget | Arm shares | Cost-model regret / slow path | Forced parks |", "|---|---|---|---|---|"]
+        for l in [x for x in ADAPTIVE if x in span]:
+            x = wd["locks"][l]
+            shares = " / ".join(f"{v:.0%}" for v in x["arm_share"]) if l in ("hedge", "exp3") else "–"
+            md.append(f"| {l} | {fmt_ns(x['budget_mean_ns'])} | {shares} | {fmt_ns(x['policy_regret_ns_per_slow'])} | {x['forced_frac']:.1%} |")
+        md.append("")
 
     for a in H3_POLICIES:
         rs_ = case_results[a]
@@ -705,7 +746,16 @@ def analyze_e6():
         h = data["h3"][a]
         md.append(f"- **Policy {'A (ada)' if a == 'ada' else 'B (hedge)'}: H3 {h['verdict']}** "
                   f"({h['met']} met, {h['not_met']} not met, {h['inconclusive']} inconclusive of 6)")
-    md += ["", "Exploratory rows (exp3, ta) in the tables above are not part of the verdict."]
+    md += ["", "Exploratory rows (exp3, ta) in the tables above are not part of the verdict.", "",
+           "### Sensitivity: B* held fixed (exploratory, not the pre-registered rule)", "",
+           "Same point estimates; intervals with B* held at the point-estimate choice in every resample "
+           "(the treatment C1 gave A* in H2). Shows how much of the interval width comes from B* switching.", "",
+           "| Workload | Policy | Throughput ratio CI | p99.9 ratio CI | Result with B* fixed |", "|---|---|---|---|---|"]
+    for wl, wd in data["workloads"].items():
+        for a in H3_POLICIES:
+            x = wd["sensitivity_fixed_bstar"][a]
+            md.append(f"| {wl} | {a} | [{x['thr_ci'][0]:.3f}, {x['thr_ci'][1]:.3f}] | "
+                      f"[{x['tail_ci'][0]:.2f}, {x['tail_ci'][1]:.2f}] | {x['result']} |")
     write("e6", md, data)
     write_csv("e6_windows", win_rows)
     write_csv("e6_regret", reg_rows)
@@ -765,7 +815,11 @@ def analyze_e7():
                            # cpu.stat throttled_usec is summed over CPUs
                            "throttled_cpu_ms_per_s": mean_of([c["throttled_usec"] / 1e3 / c["dur_s"] for c in cg]),
                            "usage_cores": mean_of([c["usage_usec"] / 1e6 / c["dur_s"] for c in cg]),
+                           "starved_runs": sum(e["starved"] for e in ex),
                            "ta_triggers": mean_of([x["triggers"] for x in ta]) if ta else None,
+                           "ta_events": mean_of([x["throttle_events"] for x in ta]) if ta else None,
+                           "ta_backoffs": mean_of([x["backoffs"] for x in ta]) if ta else None,
+                           "ta_hold_peak": mean_of([x["hold_peak"] for x in ta]) if ta else None,
                            "ta_park_ms": mean_of([x["park_ms"] for x in ta]) if ta else None,
                            "_tail": stats.TailSet([run_hist("e7", r)[0] for r in rs], 0.999)}
             cd = {"hold_ns": h, "quota_pct": q, "locks": rows}
@@ -792,13 +846,19 @@ def analyze_e7():
                 rows[l].pop("_tail")
             data["cases"][case] = cd
             md += [f"## hold {fmt_ns(h)}, quota {str(q) + '%' if q else 'none (exploratory reference)'}", "",
-                   "| Lock | Throughput (M ops/s) | p50 | p99 | p99.9 | Wait-weighted p99 | Jain | Worst-thread p99 | CPU used (cores) | Throttled periods | Throttled CPU-ms/s | Forced parks | Mean budget |",
-                   "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+                   "| Lock | Throughput (M ops/s) | p50 | p99 | p99.9 | Wait-weighted p99 | Jain | Worst-thread p99 | Runs with a starved thread | CPU used (cores) | Throttled periods | Throttled CPU-ms/s | Forced parks | Mean budget |",
+                   "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
             for l, x in sorted(rows.items(), key=lambda kv: kv[1]["p999"]):
                 md.append(f"| {l} | {x['thr_mean']/1e6:.3f} | {fmt_ns(x['p50'])} | {fmt_ns(x['p99'])} | {fmt_ns(x['p999'])} | "
                           f"{fmt_ns(x['wait_weighted_p99'])} | {x['jain']:.3f} | {fmt_ns(x['worst_thread_p99'])} | "
+                          f"{x['starved_runs']}/{x['runs']} | "
                           f"{x['usage_cores']:.2f} | {x['throttled_periods_frac']:.0%} | {x['throttled_cpu_ms_per_s']:.0f} | "
                           f"{x['forced_frac']:.0%} | {fmt_ns(x['budget_mean_ns']) if l in ADAPTIVE else '–'} |")
+            t = rows.get("ta")
+            if t and t["ta_triggers"] is not None:
+                md += [f"`ta` detector, mean per run over the process lifetime (incl. warm-up): {t['ta_triggers']:.0f} triggers "
+                       f"({t['ta_events']:.0f} on a throttle event, the rest on usage ≥ 90% of quota), {t['ta_backoffs']:.1f} back-offs, "
+                       f"peak hold {t['ta_hold_peak']:.1f} periods, park mode {t['ta_park_ms']:.0f} ms.", ""]
             md.append("")
     data["h4"] = {"met": results.count("met"), "not_met": results.count("not met"),
                   "inconclusive": results.count("inconclusive"), "verdict": overall(results)}
@@ -841,6 +901,22 @@ def analyze_e8():
         md.append(f"| {key} | {b} | " + " | ".join(f"{c[l]:.2f}" for l in ADAPTIVE if l in c) +
                   f" | {c['park_anchor']:.2f} | {c['spin_anchor']:.2f} |")
     data["vs_e2"] = comp
+    g = group(runs, "hold_ns", "threads", "lock")
+    md += ["", "## Wake-up latency measured inside the lock (exploratory, RQ1)", "",
+           "Mean of the in-lock samples (releaser's stamp before FUTEX_WAKE to the woken waiter's return), `ada`, "
+           "averaged over runs. E1 medians for comparison: 2.7–5.7 µs at 20 µs–1 ms idle, 12–31 µs at 10 ms idle.", "",
+           "| hold \\ T | " + " | ".join(str(t) for t in E2_T) + " |", "|---|" + "---|" * len(E2_T)]
+    wake = {}
+    for h in sorted({k[0] for k in g}):
+        cells = []
+        for t in E2_T:
+            rs = g.get((h, t, "ada"), [])
+            v = mean_of([r["result"]["lock_stats"]["wake_mean_ns"] for r in rs if r["result"]["lock_stats"]["wake_n"]])
+            n = sum(r["result"]["lock_stats"]["wake_n"] for r in rs)
+            wake[f"h{h}_t{t}"] = {"wake_mean_ns": v, "samples": n}
+            cells.append(f"{fmt_ns(v)} (n={n})")
+        md.append(f"| {fmt_ns(h)} | " + " | ".join(cells) + " |")
+    data["in_lock_wake_ada"] = wake
     write("e8", md, data)
 
 
