@@ -6,6 +6,12 @@
 
 > **Status of this document:** Research planning only. All hypotheses below are **PROPOSED**. **All results are PENDING.** No experiments have been run, and nothing here should be read as a finding. Thresholds are proposed starting points to be committed to version control **before** any final data collection.
 
+> **Update 2026-10-16 (Phases 2–4 complete):** the hypotheses were frozen at
+> tag `prereg-v1` (§3.2, §5.6, §5.7, §6.1) and `prereg-v1-p3` (§5.8). All
+> four now have verdicts in §3.4: H1 supported, H2/H3/H4 partially supported.
+> The planning text below is kept as written; the report draft is
+> `docs/report.md`.
+
 > **Note on source material:** No separate PDF was available when this file was created. Scope, terminology and hypotheses are carried over from the project plan developed in the conversation. Literature entries are **candidates to locate and verify**, not confirmed citations.
 
 ---

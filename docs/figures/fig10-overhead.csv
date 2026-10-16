@@ -1,0 +1,17 @@
+measure,lock,ns
+uncontended_lock_unlock,none,2.250
+uncontended_lock_unlock,spin,2.120
+uncontended_lock_unlock,park,2.970
+uncontended_lock_unlock,stp:1000,3.410
+uncontended_lock_unlock,ada,3.380
+uncontended_lock_unlock,hedge,3.490
+uncontended_lock_unlock,exp3,3.430
+uncontended_lock_unlock,ta,3.230
+uncontended_lock_unlock,pthread,7.690
+uncontended_lock_unlock,pthread-adaptive,8.250
+policy_choose,ada,0.320
+policy_update,ada,15.330
+policy_choose,hedge,10.590
+policy_update,hedge,30.050
+policy_choose,exp3,10.540
+policy_update,exp3,19.650

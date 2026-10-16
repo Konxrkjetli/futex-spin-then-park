@@ -1,0 +1,25 @@
+workload,policy,metric,value,ci_lo,ci_hi,result
+S1_t8,ada,thr_ratio,0.9942,0.9836,1.0058,not met
+S1_t16,ada,thr_ratio,0.7828,0.7742,0.7934,not met
+S2_t8,ada,thr_ratio,1.0125,0.9855,1.0236,inconclusive
+S2_t16,ada,thr_ratio,1.0102,1.0033,1.0179,met
+R1_t8,ada,thr_ratio,0.9901,0.9613,1.0084,inconclusive
+R1_t16,ada,thr_ratio,1.0531,1.0313,1.0750,not met
+S1_t8,hedge,thr_ratio,0.9992,0.9912,1.0095,met
+S1_t16,hedge,thr_ratio,0.7877,0.7789,0.7988,not met
+S2_t8,hedge,thr_ratio,0.9920,0.9659,1.0033,inconclusive
+S2_t16,hedge,thr_ratio,0.9911,0.9754,1.0020,met
+R1_t8,hedge,thr_ratio,0.8404,0.8113,0.8584,inconclusive
+R1_t16,hedge,thr_ratio,0.9127,0.8904,0.9320,met
+S1_t8,ada,tail_ratio,4.5977,1.3746,4.6619,not met
+S1_t16,ada,tail_ratio,0.0872,0.0801,0.0958,not met
+S2_t8,ada,tail_ratio,0.0567,0.0435,3.7283,inconclusive
+S2_t16,ada,tail_ratio,0.5440,0.4803,0.6059,met
+R1_t8,ada,tail_ratio,2.7941,0.9635,3.0599,inconclusive
+R1_t16,ada,tail_ratio,1.4466,1.3386,1.5502,not met
+S1_t8,hedge,tail_ratio,1.0096,0.3007,1.0482,met
+S1_t16,hedge,tail_ratio,0.1195,0.1142,0.1274,not met
+S2_t8,hedge,tail_ratio,0.0637,0.0587,3.8323,inconclusive
+S2_t16,hedge,tail_ratio,0.5997,0.5501,0.6761,met
+R1_t8,hedge,tail_ratio,2.3015,0.7718,2.6200,inconclusive
+R1_t16,hedge,tail_ratio,0.7783,0.6118,0.9479,met

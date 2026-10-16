@@ -9,11 +9,15 @@ This README is the **living record** of the project: what exists, how it works,
 why it was built this way, what has been checked, and what is still open. It
 is updated at the end of every phase.
 
-> **Results status (Phases 1–3):** H1 SUPPORTED; H2 PARTIALLY SUPPORTED
-> (2/4); H3 PARTIALLY SUPPORTED for both Policy A (1/6 met) and Policy B (3/6
-> met); H4 PARTIALLY SUPPORTED (2/4). Verdicts are in RESEARCH_PHASE.md §3.4;
-> Phase 2 results are in §11 and Phase 3 results in §12. §7 reports harness
-> validation (pilot runs), which are not results.
+> **Results status (final, data frozen at `data-freeze-v1`):** H1 SUPPORTED;
+> H2 PARTIALLY SUPPORTED (2/4); H3 PARTIALLY SUPPORTED for both Policy A (1/6
+> met) and Policy B (3/6 met); H4 PARTIALLY SUPPORTED (2/4).
+>
+> - Verdicts: RESEARCH_PHASE.md §3.4.
+> - Paper draft: `docs/report.md`.
+> - Results by phase: Phase 2 in §11, Phase 3 in §12, Phase 4 in §13.
+> - Reproduction: §14.
+> - §7 reports harness validation (pilot runs), which are not results.
 
 ---
 
@@ -24,7 +28,7 @@ is updated at the end of every phase.
 | 1. Foundation: locks, harness, wake-up benchmark, validation | 22:00 – 01:00 | **Done** (reviewed, approved 22:25) |
 | 2. Pre-registration + static experiments (RQ1, RQ2) | 01:00 – 03:30 | **Done** 23:59 (accepted with the Phase 3 go-ahead). H1 supported, H2 partially supported |
 | 3. Adaptive locks + throttling (RQ3, H3, H4) | 03:30 – 06:30 (run 15 Oct 21:52 – 16 Oct 00:09) | **Done**, awaiting review. H3 partially supported (A 1/6, B 3/6), H4 partially supported (2/4) |
-| 4. Analysis + write-up | 06:30 – 09:30 | Not started |
+| 4. Analysis + write-up | 06:30 – 09:30 (run 16 Oct 22:51 – 23:18) | **Done**, awaiting review. Report draft `docs/report.md`; figures 1–10; data frozen at tag `data-freeze-v1` |
 
 Detailed checklist and event log: [`PROGRESS.md`](PROGRESS.md). Plan: [`TIMELINE.md`](TIMELINE.md).
 
@@ -43,6 +47,11 @@ Detailed checklist and event log: [`PROGRESS.md`](PROGRESS.md). Plan: [`TIMELINE
 | `results/` | Raw data, append-only: `manifests/`, `validation/`, and experiment data from Phase 2 on |
 | `config/budgets.json` | Static spin budgets chosen from E1 (Phase 2) |
 | `config/policy.json` | Adaptive-policy parameters chosen by the tuning session T3 (Phase 3, tag `prereg-v1-p3`) |
+| `docs/report.md` | **Paper draft** (Phase 4): every number cites its generated source |
+| `docs/literature.md` | Verified bibliographic details of every candidate source, plus the reading list (no paper read yet) |
+| `docs/figures/` | Figures 1–10 (light + dark SVG, CSV data twin each) and `tables.md` (tables 8, 9) |
+| `docs/results/supplement.md` | Mann–Whitney U and effect sizes for the pre-declared comparisons (supplementary) |
+| `requirements.txt` | Pinned Python packages for the figures and supplementary tests (project `.venv/`) |
 | `docs/results/*.md` | Generated result tables, one per experiment (E1–E8, T3) |
 
 ---
@@ -84,8 +93,17 @@ systemd-run --user --scope --quiet -p CPUQuota=200% -p CPUQuotaPeriodSec=100ms -
 ./build/calib policy           # cost of one policy decision / update
 ```
 
-Requirements: gcc, make, Python 3 (standard library only for Phase 1). Phase 4
-analysis needs `python-pandas python-scipy python-matplotlib`.
+Requirements: gcc, make, Python 3, SQLite 3 headers (for `sqlbench`), systemd
+with the user `cpu` controller delegated (for E7).
+
+- Experiments and the main analysis (`scripts/run_experiments.py`,
+  `scripts/analyze.py`) use the Python standard library only.
+- Figures and the supplementary tests need matplotlib and scipy, pinned in
+  `requirements.txt`:
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+```
 
 ---
 
@@ -104,6 +122,8 @@ src/
   policy.h, policy.c  spin-budget policies: Policy A (ada), Policy B (hedge), EXP3 (Phase 3)
   lock_adaptive.c   adaptive spin-then-park locks + throttle-aware helper (Phase 3)
   cgroup.h, cgroup.c  read cpu.max / cpu.stat of the process's own cgroup (Phase 3)
+  shim.c            LD_PRELOAD shim: pthread_mutex_* on futex-lab locks (Phase 4)
+  sqlbench.c        SQLite benchmark, one connection shared by T threads (Phase 4)
   topo.h, topo.c    CPU topology, cores-first pinning order, SMT sibling lookup
   hist.h, hist.c    log-linear latency histogram (<= 0.8% bucket width)
   bench.c           lock benchmark harness
@@ -114,6 +134,8 @@ tests/
 scripts/
   manifest.py       machine manifest collector
   validate.py       harness validation suite -> docs/validation.md
+  figures.py        figures 1-10 + tables 8-9 (needs .venv)
+  supplement.py     Mann-Whitney U / effect sizes for H1-H4 (needs .venv)
   experiments.py    pre-registered experiment matrix (E1-E8, T3)
   run_experiments.py  runner: seeded random order, resumable, clean-code check
   choose_budgets.py, choose_policy.py  pre-declared selection rules (E1 -> budgets, T3 -> policy)
@@ -319,7 +341,9 @@ Latest run: **15/15 checks pass** (2026-10-14 22:12 IST, boost on, AC power).
 | Idle states | POLL, C1 (1 µs), C2 (18 µs), C3 (350 µs) |
 | Clocksource | tsc, 3.194 GHz |
 | cgroup | v2; `cpu` controller delegated to the user session (throttled runs need no sudo) |
-| Not installed | perf, strace, cpupower, pandas/scipy/matplotlib |
+| Python packages | numpy 2.5.4, scipy 1.18.1, pandas 3.0.6, matplotlib 3.11.2 in `.venv/` (pip; `requirements.txt`). Installed 16 Oct, Phase 4 |
+| SQLite | 3.53.4 (system package; used by `sqlbench`) |
+| Not installed | perf, strace, cpupower (need sudo: `sudo pacman -S --needed perf strace cpupower`) |
 
 Full snapshot: `results/manifests/` (`make manifest`).
 
@@ -892,3 +916,110 @@ python3 scripts/run_experiments.py e8        # exploratory (12 min)
 python3 scripts/analyze.py t3 e6 e7 e8       # -> docs/results/*.md, results/analysis/*.json|csv
 ./build/calib policy; ./build/calib timer     # overheads (raw: results/overhead/)
 ```
+
+---
+
+## 13. Phase 4: analysis, figures, real application, write-up
+
+### 13.1 What was done
+
+| Item | Output |
+|---|---|
+| Supplementary tests (Mann–Whitney U, effect size A, Hodges–Lehmann, Holm within each hypothesis) for the pre-declared comparisons only | `docs/results/supplement.md` |
+| Figures 1–7 and 10; tables 8 (fairness) and 9 (hypotheses) | `docs/figures/` (`scripts/figures.py`) |
+| Literature: bibliographic details located and verified (Crossref, publisher pages); reading list flagged; gap-check searches | `docs/literature.md` |
+| Stretch goal: LD_PRELOAD shim + SQLite (E9, exploratory, declared in RESEARCH_PHASE §5.9 before data) | `src/shim.c`, `src/sqlbench.c`, `docs/results/e9.md` |
+| Paper draft following RESEARCH_PHASE §8 | `docs/report.md` |
+| Data freeze | tag `data-freeze-v1` |
+
+### 13.2 Findings added in Phase 4
+
+**Supplementary tests agree with every verdict.**
+
+- The tests separate statistical from practical significance. In H2's
+  S1 T = 8 case, for example, the 3.2% throughput loss is statistically real
+  (Holm p = 0.011) but far below the 25% bound.
+- In H3, the per-run p99.9 differences behind the p99.9 misses are complete
+  separations (A = 1.0, Holm p = 0.004). So the misses are not noise; they
+  are the barging effect.
+
+**E9: SQLite, one connection shared by T threads.**
+
+| Threads | spin vs glibc | `ada` vs glibc | Best lock (vs glibc) | Notes |
+|---|---|---|---|---|
+| 4–16 | 1.87–2.01× | 1.11–1.44× | spin | our `park` = glibc (0.97–1.00×) |
+| 32 | 0.79× | 0.92× | `stp:2350`, 1.11× | Hedge 0.80× |
+
+- p99 latency at 4 threads: `ada` 12.7 µs vs glibc 33.6 µs.
+- The steady-sweep picture carries over to a real library.
+- Shim limits: no condition variables (aborts loudly), no robust or
+  process-shared mutexes. Recursion is implemented in the shim.
+
+**Literature.**
+
+- 24 sources were located and their bibliographic details checked: 16 from
+  the original list and 8 found by the gap searches. One more (a
+  coordinated-omission talk) is still to be located as a citable source.
+- Adaptive spinning is old (Karlin et al. 1991; Lim and Agarwal 1994), and
+  the kernel has seen several owner-aware adaptive futex proposals (2010, 2014,
+  2024). The novelty must be framed around the online-learning and
+  cgroup-throttling angles, if they survive the team's reading.
+- **No paper has been read by the team yet.** The related-work section of the
+  report is a skeleton marked [to read].
+
+### 13.3 Honest notes on Phase 4
+
+1. **E9's first session stopped at its second run.** LD_PRELOAD splits its list
+   on spaces, and the checkout path contains one ("OS PROJECT").
+   - `sqlbench` refused to run without the shim (a guard built for exactly
+     this), so no wrong data was recorded.
+   - The one completed `native` run was kept, as raw data is append-only. The
+     path was fixed (commit `1e4516f`) and the session resumed.
+2. **Python libraries were installed with pip into `.venv/`, not with pacman.**
+   sudo needs a password, so this was the only way to install them without
+   one. The Phase 2/3 analysis stays standard-library-only.
+3. **Figure 2 uses the pre-registered best-static rule** (ties within 1% go to
+   the lower p99). §11.5's count of "highest-throughput lock" cells uses plain
+   throughput, so the two counts differ slightly.
+4. **Figures are static SVG.** Each comes in light and dark variants plus a
+   CSV twin as the table view. The palette was validated for colour-vision
+   deficiency, and the light-mode low-contrast colours always carry legends.
+
+---
+
+## 14. Reproducing everything
+
+Each step regenerates its outputs from the committed raw data. Re-running
+experiments appends new sessions; it never edits existing data.
+
+```bash
+# build and test
+make && make test && make test-tsan && make test-shim
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+
+# (optional) re-run experiments — each is resumable and refuses to start on uncommitted code
+python3 scripts/run_experiments.py e1     # then: python3 scripts/choose_budgets.py
+python3 scripts/run_experiments.py e2     # e3 e4 e5
+python3 scripts/run_experiments.py t3     # then: python3 scripts/choose_policy.py
+python3 scripts/run_experiments.py e6     # e7 (systemd --user scopes) e8 e9
+
+# analysis, tests, figures
+python3 scripts/analyze.py all            # docs/results/*.md, results/analysis/*.json|csv
+.venv/bin/python scripts/supplement.py    # docs/results/supplement.md
+.venv/bin/python scripts/figures.py       # docs/figures/*, tables.md
+./build/calib policy; ./build/calib timer # overheads (recorded run: results/overhead/)
+```
+
+| Output | Made by | From |
+|---|---|---|
+| H1 verdict, Figure 1 | `analyze.py e1`, `figures.py` | `results/e1/` |
+| Figure 2 | `figures.py` | `results/analysis/e2.json` ← `results/e2/` |
+| H2 verdict, Figure 3 | `analyze.py e4`, `figures.py` | `results/e4/` |
+| Tuning (T3), `config/policy.json` | `analyze.py t3`, `choose_policy.py` | `results/t3/` |
+| H3 verdict, Figures 4a/4b, Table 8 | `analyze.py e6`, `figures.py` | `results/e6/` |
+| Figure 5 | `figures.py` | `results/analysis/e2.json`, `e8.json` |
+| H4 verdict, Figure 6 | `analyze.py e7`, `figures.py` | `results/e7/` |
+| Figure 7 | `analyze.py e9`, `figures.py` | `results/e9/` |
+| Figure 10 | `figures.py` | `results/overhead/` |
+| Supplementary tests | `supplement.py` | `results/e1/`, `e4/`, `e6/`, `e7/` |
+| Table 9 | `figures.py` | `RESEARCH_PHASE.md` §3.4 |

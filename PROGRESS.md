@@ -2,7 +2,7 @@
 
 Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Times are IST.
 
-**Current phase:** Phase 3 complete (2026-10-16 00:09 IST), awaiting review before Phase 4
+**Current phase:** All four phases complete (Phase 4 finished 2026-10-16 23:18 IST); data frozen at tag `data-freeze-v1`; awaiting review
 **Results status:** H1 SUPPORTED, H2 PARTIALLY SUPPORTED (Phase 2). H3 PARTIALLY SUPPORTED for Policy A (1/6) and Policy B (3/6); H4 PARTIALLY SUPPORTED (2/4) (Phase 3).
 
 ---
@@ -14,7 +14,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 1. Foundation | 22:00 – 01:00 | **Done** (awaiting review) | 21:55 | 22:15 |
 | 2. Pre-registration + static experiments | 01:00 – 03:30 | **Done** (accepted with the Phase 3 go-ahead) | 22:25 | 23:59 |
 | 3. Adaptive + throttling | 03:30 – 06:30 | **Done** (awaiting review) | 15 Oct 21:52 | 16 Oct 00:09 |
-| 4. Analysis + write-up | 06:30 – 09:30 | Not started | | |
+| 4. Analysis + write-up | 06:30 – 09:30 | **Done** (awaiting review) | 16 Oct 22:51 | 16 Oct 23:18 |
 
 ---
 
@@ -74,14 +74,15 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 
 ## Phase 4: Analysis + write-up
 
-- [ ] Analysis scripts (bootstrap CIs, tests, Jain's index, regret)
-- [ ] Figures 1–10
-- [ ] Hypothesis verdicts → `RESEARCH_PHASE.md` §3.4
-- [ ] Literature details located; reading list flagged
-- [ ] Report draft `docs/report.md`
-- [ ] README reproduction instructions
-- [ ] Data freeze commit + tag
-- [ ] (stretch) LD_PRELOAD shim + real application
+- [x] Analysis scripts (bootstrap CIs, tests, Jain's index, regret): `analyze.py` (Phases 2–3) + `supplement.py` (Mann–Whitney U, effect sizes, Holm; pre-declared comparisons only)
+- [x] Figures 1–10: `scripts/figures.py` → `docs/figures/` (7 figure files + tables 8, 9; light/dark SVG + CSV twin each; palette CVD-validated; every figure rendered and inspected)
+- [x] Hypothesis verdicts → `RESEARCH_PHASE.md` §3.4 (H1–H4, done in Phases 2–3; unchanged)
+- [x] Literature details located; reading list flagged: `docs/literature.md` (24 sources verified, 1 still to locate; **none read by the team yet**)
+- [x] Report draft `docs/report.md` (claims checked against generated tables; 10 corrections before commit)
+- [x] README reproduction instructions (README §14)
+- [x] Data freeze commit + tag `data-freeze-v1`
+- [x] (stretch) LD_PRELOAD shim + real application: `src/shim.c`, `src/sqlbench.c`, E9 (220 runs)
+- [x] Python libraries installed (`.venv/`, `requirements.txt`) at the team's request
 
 ---
 
@@ -106,6 +107,10 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | D16 | Harness additions for Phase 3: per-window slow-path counters, cgroup counters, per-thread tail quantiles, lock report (output only; one index comparison per op in the hot loop) | Needed for adaptation time series, H4 and the barging view. E6/E7 compare static and adaptive locks within one session, so the change applies to both sides | 2026-10-15 22:15 |
 | D17 | Exploratory views added after seeing E6/E7 data: B*-fixed sensitivity for H3, runs with a starved thread, policy internals (arm shares, cost-model regret), `ta` detector counters, in-lock wake latency (E8) | Explain the confirmatory results (barging, B* switching, detector behaviour). Labelled exploratory; confirmatory computation unchanged | 2026-10-16 00:05 |
 | D18 | Not done in Phase 3: wake-up latency under throttling (RQ1 condition), a per-window park-mode time metric, LD_PRELOAD stretch goal | Time / scope; listed in README §12.8 | 2026-10-16 00:09 |
+| D19 | Python libraries (numpy, scipy, pandas, matplotlib) installed with pip into a project `.venv/` instead of pacman | sudo needs a password; pinned in `requirements.txt`. Phase 2/3 analysis stays stdlib-only. perf/strace/cpupower still not installed (need sudo) | 2026-10-16 22:56 |
+| D20 | E9 first session stopped at run 2 (LD_PRELOAD split the checkout path at its space); 1 valid `native` run kept; resumed after a path fix | The sqlbench guard prevented any unshimmed run from being recorded as shimmed | 2026-10-16 22:58 |
+| D21 | Figure 2 uses the pre-registered best-static rule (1% ties → lower p99); README §11.5 counts plain highest-throughput cells | Consistency with H2/H3 definitions; both counts reported | 2026-10-16 23:10 |
+| D22 | Related work in the report is a skeleton: bibliographic details verified, no content claims until the team reads each source | Integrity rule, RESEARCH_PHASE §4 | 2026-10-16 23:14 |
 | D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
 
 ## Log
@@ -156,3 +161,15 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | 00:03 | Analyses run: **H3 PARTIALLY SUPPORTED** for ada (1 met / 3 not met / 2 inconclusive) and hedge (3 / 1 / 2); **H4 PARTIALLY SUPPORTED** (2/4: met at 1 µs holds, not met at 10 µs) |
 | 00:05 | Exploratory views added (D17); starvation verified from raw per-thread counts (all in S1's 20 µs phase; E7 10 µs holds) |
 | 00:09 | README §12, RESEARCH_PHASE §3.4, PROGRESS updated; claims checked against the generated tables (15 wording fixes before commit, incl. one wrong claim about Hedge's per-phase behaviour, found after fixing a per-phase budget bug in the analysis); Phase 3 committed; awaiting review |
+| 22:51 | Phase 4 go-ahead ("complete Phase 4"). matplotlib/numpy not installed; SQLite headers present |
+| 22:55 | LD_PRELOAD shim and SQLite benchmark built; all 8 lock specs pass SUM(v) = #UPDATE under the shim (smoke runs, not data) |
+| 22:56 | Team asked to install all libraries: sudo needs a password → numpy, scipy, pandas, matplotlib installed into `.venv/` with pip; `requirements.txt` pinned (D19) |
+| 22:57:35 | E9 declared (RESEARCH_PHASE §5.9) and committed `651e8c2` before any E9 data |
+| 22:57:41 | E9 session 1: run 2 failed 3× (LD_PRELOAD path with a space); 1 native run kept (D20). Fix committed `1e4516f` 22:58:31 |
+| 22:58:43 | E9 resumed: 219 runs, 0 invalid, 9.2 min. Literature searches during the run (Crossref, publisher pages) |
+| 23:01 | `docs/literature.md` written: 24 sources verified, gap-check leads (kernel adaptive-futex threads 2010/2014/2024) |
+| 23:08 | Supplementary tests run: all directions agree with the pre-registered verdicts |
+| 23:10 | Figures generated, rendered to PNG and inspected; layout fixes (label overflow, legends over data, colliding end labels) |
+| 23:14 | Report draft written; 10 claims corrected against the generated tables before commit |
+| 23:15 | All analyses regenerated from raw data: every committed Phase 2–3 output byte-identical (reproducibility check) |
+| 23:18 | README §13–14, PROGRESS updated; Phase 4 committed; tag `data-freeze-v1` |
