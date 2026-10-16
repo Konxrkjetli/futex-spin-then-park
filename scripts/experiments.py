@@ -320,7 +320,9 @@ def e8():
 
 E9_THREADS = [4, 8, 16, 32]
 E9_RUNS = 5
-SHIM = ROOT / "build" / "libflshim.so"
+# Relative to the runner's cwd (the repository root): LD_PRELOAD splits its
+# list on spaces, and the absolute path of this checkout contains one.
+SHIM = "./build/libflshim.so"
 
 
 def e9():
