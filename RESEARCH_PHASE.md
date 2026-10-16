@@ -387,6 +387,39 @@ anchors for session drift against E2.
 - wake latency measured inside the lock vs E1;
 - throttling counters.
 
+
+### 5.9 Phase 4 additions (written 2026-10-16, before any E9 data)
+
+**E9 (exploratory, no hypothesis): real application.** SQLite 3.53.4, one
+in-memory database and **one connection shared by T threads** in serialized
+mode. Every API call therefore takes the connection's recursive mutex. 10,000
+rows. Each operation is a point SELECT (90%) or an `UPDATE v = v + 1` (10%) on
+a random key. 2 s measured, 200 ms warm-up, pinned, T ∈ {4, 8, 16, 32},
+5 runs, seeded random order.
+
+- Locks: `native` (glibc's mutex, no shim), plus the static family S, `ada`,
+  `hedge`, `exp3` and `ta`, all with the frozen `prereg-v1-p3` parameters.
+  The non-native locks run through the LD_PRELOAD shim (`src/shim.c`), which
+  maps each `pthread_mutex_t` to its own futex-lab lock and implements
+  recursion in the shim.
+- Validity: SUM(v) at the end must equal the number of UPDATEs executed.
+  Otherwise the run is invalid and re-run, as for `counter_ok`.
+- Reported: throughput, latency per operation (bind + step + reset, which
+  includes the time inside SQLite), Jain's index, CPU.
+- Smoke runs before this declaration: 300 ms at T = 8 for every lock (to
+  check the shim and the SUM check), not used as data.
+
+**Supplementary tests for the pre-declared comparisons** (§6). For H1–H4
+only, the Mann–Whitney U test with an effect size (probability of
+superiority A, and the Hodges–Lehmann shift where meaningful), on:
+
+- per-sample wake latencies (H1);
+- per-run throughput, per-run p99 or p99.9 (H2–H4).
+
+p-values are Holm-corrected within each hypothesis. These tests do not change
+any verdict: verdicts follow §6.1. Per-run tail quantiles from about 10 runs
+are noisy, which is why the verdict rule uses pooled histograms.
+
 ---
 
 ## 6. Statistical analysis plan

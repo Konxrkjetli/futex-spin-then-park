@@ -98,6 +98,8 @@ def main():
         if r["tool"] == "bench":
             args += ["--iters-per-ns", f"{calib['iters_per_ns']:.5f}",
                      "--hist-out", f"{base}.hist.csv", "--windows-out", f"{base}.win.csv"]
+        elif r["tool"] == "sqlbench":
+            args += ["--hist-out", f"{base}.hist.csv", "--windows-out", f"{base}.win.csv"]
         else:
             args += ["--out", f"{base}.csv"]
 
@@ -110,7 +112,7 @@ def main():
                     data = json.loads(p.stdout)
                 except json.JSONDecodeError:
                     ok = False
-            if ok and r["tool"] == "bench" and not data.get("counter_ok"):
+            if ok and r["tool"] in ("bench", "sqlbench") and not data.get("counter_ok"):
                 ok = False
             if ok:
                 break

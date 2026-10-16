@@ -316,5 +316,31 @@ def e8():
     return runs
 
 
+# ---- E9: real application (SQLite via the LD_PRELOAD shim; exploratory) -----
+
+E9_THREADS = [4, 8, 16, 32]
+E9_RUNS = 5
+SHIM = ROOT / "build" / "libflshim.so"
+
+
+def e9():
+    runs = []
+    locks = [("native", None)] + lock_entries(static_family() + ["ada", "hedge", "exp3", "ta"])
+    for label, spec in locks:
+        for t in E9_THREADS:
+            for r in range(E9_RUNS):
+                rid = f"e9_{label.replace(':', '-')}_t{t}_r{r}"
+                run = {"id": rid, "tool": "sqlbench",
+                       "args": ["--threads", t, "--rows", 10000, "--write-pct", 10, "--duration-ms", 2000,
+                                "--warmup-ms", WARMUP_MS, "--window-ms", WINDOW_MS, "--pin", "cores",
+                                "--seed", r + 1],
+                       "meta": {"lock": label, "spec": spec or "native", "threads": t, "rep": r,
+                                "app": "sqlite"}}
+                if spec:
+                    run["wrap"] = ["env", f"LD_PRELOAD={SHIM}", f"FL_SHIM_LOCK={spec}"]
+                runs.append(run)
+    return runs
+
+
 EXPERIMENTS = {"e1": e1, "e2": e2, "e3": e3, "e4": e4, "e5": e5,
-               "t3": t3, "e6": e6, "e7": e7, "e8": e8}
+               "t3": t3, "e6": e6, "e7": e7, "e8": e8, "e9": e9}
