@@ -344,5 +344,27 @@ def e9():
     return runs
 
 
+# ---- E10: wake-up latency under CPU quota (RQ1 throttling condition; exploratory) ----
+
+E10_QUOTAS = [None, 100, 50]     # CPUQuota percent, period 100 ms
+E10_RUNS = 3
+
+
+def e10():
+    runs = []
+    for quota in E10_QUOTAS:
+        for load in (False, True):
+            for rep in range(E10_RUNS):
+                cid = f"other-core_idle1000us{'_load' if load else ''}_q{quota or 'none'}"
+                args = ["--sleeper", E1_SLEEPER, "--waker", E1_PLACEMENTS["other-core"], "--idle-us", 1000,
+                        "--samples", 10000, "--label", cid]
+                if load:
+                    args.append("--load")
+                runs.append({"id": f"{cid}_r{rep}", "tool": "wakebench", "args": args, "wrap": scope_wrap(quota),
+                             "meta": {"condition": cid, "placement": "other-core", "idle_us": 1000, "load": load,
+                                      "quota_pct": quota, "period_ms": 100, "rep": rep}})
+    return runs
+
+
 EXPERIMENTS = {"e1": e1, "e2": e2, "e3": e3, "e4": e4, "e5": e5,
-               "t3": t3, "e6": e6, "e7": e7, "e8": e8, "e9": e9}
+               "t3": t3, "e6": e6, "e7": e7, "e8": e8, "e9": e9, "e10": e10}

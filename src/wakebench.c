@@ -30,6 +30,7 @@
 #include <sys/prctl.h>
 #include <time.h>
 
+#include "cgroup.h"
 #include "common.h"
 #include "futex.h"
 #include "topo.h"
@@ -237,6 +238,20 @@ int main(int argc, char **argv)
     struct idle_state idle0[MAX_IDLE_STATES], idle1[MAX_IDLE_STATES];
     int nidle = read_idle(cfg.sleeper_cpu, idle0);
 
+    /* cgroup CPU bandwidth counters over the whole measurement (Phase 4,
+     * E10: the run may execute in a transient scope with a CPU quota). */
+    char cg_dir[512], cg_max[64] = "";
+    struct cg_stat cg0 = { 0 }, cg1 = { 0 };
+    int cg_fd = -1;
+    if (cg_self_dir(cg_dir, sizeof cg_dir) == 0) {
+        long long q, per;
+        if (cg_read_max(cg_dir, &q, &per) == 0)
+            snprintf(cg_max, sizeof cg_max, q < 0 ? "max %lld" : "%lld %lld", q < 0 ? per : q, per);
+        cg_fd = cg_open_stat(cg_dir);
+    }
+    bool cg_ok = cg_fd >= 0 && cg_read_stat_fd(cg_fd, &cg0) == 0;
+    uint64_t run_t0 = tsc_now();
+
     pthread_t th_hog, th_sleeper;
     if (cfg.load && pthread_create(&th_hog, NULL, hog, NULL) != 0)
         die("pthread_create failed");
@@ -249,6 +264,8 @@ int main(int argc, char **argv)
         pthread_join(th_hog, NULL);
     }
     read_idle(cfg.sleeper_cpu, idle1);
+    double run_s = tsc_to_ns(tsc_now() - run_t0) / 1e9;
+    cg_ok = cg_ok && cg_read_stat_fd(cg_fd, &cg1) == 0;
 
     /* ---- statistics over measured, non-missed samples ---- */
     double *lat = malloc((size_t)cfg.samples * sizeof *lat);
@@ -300,6 +317,14 @@ int main(int argc, char **argv)
            q_sorted(cost, n, 0.5), q_sorted(cost, n, 0.99));
     printf("\"blocked_ns\":{\"p50\":%.1f,\"p99\":%.1f},",
            q_sorted(blocked, n, 0.5), q_sorted(blocked, n, 0.99));
+    printf("\"run_s\":%.3f,", run_s);
+    if (cg_ok)
+        printf("\"cgroup\":{\"cpu_max\":\"%s\",\"usage_usec\":%lld,\"nr_periods\":%lld,"
+               "\"nr_throttled\":%lld,\"throttled_usec\":%lld},",
+               cg_max, cg1.usage_usec - cg0.usage_usec, cg1.nr_periods - cg0.nr_periods,
+               cg1.nr_throttled - cg0.nr_throttled, cg1.throttled_usec - cg0.throttled_usec);
+    else
+        printf("\"cgroup\":null,");
     printf("\"sleeper_cpuidle\":[");
     for (int s = 0; s < nidle; s++)
         printf("%s{\"state\":\"%s\",\"entries\":%llu,\"time_us\":%llu}", s ? "," : "",

@@ -426,6 +426,28 @@ p-values are Holm-corrected within each hypothesis. These tests do not change
 any verdict: verdicts follow §6.1. Per-run tail quantiles from about 10 runs
 are noisy, which is why the verdict rule uses pooled histograms.
 
+
+### 5.10 E10: wake-up latency under CPU quota (written 2026-10-16 23:30, before any E10 data)
+
+RQ1 lists cgroup throttling as a wake-up condition, and E1 did not include
+it. E10 is **exploratory** and has no hypothesis.
+
+- Workload: the E1 wake-up benchmark, other-core placement (CPU 2 ↔ 4),
+  1 ms idle before each wake, 10,000 samples per run (200 warm-up), 3 runs per
+  condition, seeded random order.
+- Conditions: CPU hog on the sleeper's CPU {off, on} × quota {none, 100%,
+  50%}, period 100 ms.
+- Each run gets its own systemd transient scope (the E7 launcher).
+  `wakebench` now records the scope's `cpu.stat` deltas over the run (an
+  output-only change).
+- Without the hog, the process uses far less than one CPU, so the quotas are
+  not expected to bind (a control). With the hog, the group demands more than
+  one CPU, so both quotas should throttle it.
+- Reported per condition: median with an order-statistic interval, p90, p99,
+  p99.9, max, missed wakes, and the fraction of periods throttled.
+- Smoke check before this declaration (not data): 500 samples with the hog at
+  50% quota. The group was throttled in 13 of 14 periods and p99 was 50 ms.
+
 ---
 
 ## 6. Statistical analysis plan
