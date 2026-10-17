@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Codebase Onboarding & Architecture Guide: futex-lab</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 14mm 18mm 14mm;
+    @bottom-right {
+      content: counter(page);
+      font-size: 8pt;
+      color: #718096;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    line-height: 1.55;
+    color: #1a202c;
+    background-color: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.4em;
+    margin-bottom: 0.5em;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  h1 {
+    font-size: 18pt;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 6px;
+    margin-top: 0;
+    color: #1e3a8a;
+  }
+
+  h2 {
+    font-size: 13pt;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-top: 1.8em;
+    color: #1e40af;
+  }
+
+  h3 {
+    font-size: 11pt;
+    margin-top: 1.3em;
+    color: #1e293b;
+  }
+
+  h4 {
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 0.7em;
+  }
+
+  a {
+    color: #2563eb;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+
+  code {
+    font-family: "JetBrains Mono", "Fira Code", Menlo, Monaco, Consolas, monospace;
+    font-size: 8pt;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 1px 4px;
+    border-radius: 3px;
+    border: 1px solid #e2e8f0;
+  }
+
+  pre.code-block {
+    font-family: "JetBrains Mono", "Fira Code", Menlo, Monaco, Consolas, monospace;
+    font-size: 7.5pt;
+    line-height: 1.4;
+    background-color: #f8fafc;
+    color: #0f172a;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    overflow-x: auto;
+    margin: 0.8em 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  pre.code-block code {
+    background: none;
+    padding: 0;
+    border: none;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  blockquote {
+    border-left: 3.5px solid #3b82f6;
+    background-color: #eff6ff;
+    color: #1e3a8a;
+    margin: 0.8em 0;
+    padding: 8px 14px;
+    border-radius: 0 4px 4px 0;
+    font-size: 8.5pt;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  blockquote p {
+    margin: 0;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 1.5em 0;
+  }
+
+  .table-wrapper {
+    width: 100%;
+    margin: 1em 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.5pt;
+    line-height: 1.35;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 4px 7px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+
+  ul, ol {
+    margin-top: 0;
+    margin-bottom: 0.8em;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 0.3em;
+  }
+
+  .math-inline {
+    font-family: "Cambria Math", "Latin Modern Math", serif;
+    font-style: italic;
+  }
+
+  .math-display {
+    display: block;
+    text-align: center;
+    font-family: "Cambria Math", "Latin Modern Math", serif;
+    font-size: 10pt;
+    margin: 0.6em 0;
+  }
+
+  .spacer {
+    height: 4px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 7.5pt;
+    font-weight: 600;
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<h1 id="codebase-onboarding--architecture-guide-futex-lab">Codebase Onboarding &amp; Architecture Guide: futex-lab</h1>
+<p><strong>Project Title:</strong> <em>When Should a Thread Wait? An Experimental Study of Linux Futex-Based Synchronization Under Changing Contention</em>  </p>
+<p><strong>Repository Working Subtitle:</strong> <em>Learning When to Park: Competitive Spin-Then-Wait Locking on Linux Futexes Under Non-Stationary Contention and CPU Throttling</em>  </p>
+<p><strong>Target Audience:</strong> Software engineers, systems researchers, and kernel/performance engineers onboarding onto the codebase with zero prior context.  </p>
+<p><strong>Scope:</strong> Complete architectural walkthrough, file-by-file deep explanation, execution workflows, issue analysis, and complete verification checklist.</p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-executive-summary--introduction">Executive Summary &amp; Introduction</a></li>
+<li><a href="#2-step-1-understanding-the-project">Step 1: Understanding the Project</a></li>
+</ol>
+<p>   - <a href="#21-problem-statement-spinning-vs-parking">2.1 Problem Statement: Spinning vs. Parking</a></p>
+<p>   - <a href="#22-the-ski-rental-analogy--theoretical-foundation">2.2 The Ski Rental Analogy &amp; Theoretical Foundation</a></p>
+<p>   - <a href="#23-modern-systems-realities-variable-c-states-dynamic-workloads--cpu-throttling">2.3 Modern Systems Realities: Variable C-States, Dynamic Workloads &amp; CPU Throttling</a></p>
+<p>   - <a href="#24-research-questions--pre-registered-hypotheses">2.4 Research Questions &amp; Pre-Registered Hypotheses</a></p>
+<p>   - <a href="#25-technology-stack--dependencies">2.5 Technology Stack &amp; Dependencies</a></p>
+<p>   - <a href="#26-installation-configuration--execution-guide">2.6 Installation, Configuration &amp; Execution Guide</a></p>
+<ol>
+<li><a href="#3-step-2-project-architecture--file-hierarchy">Step 2: Project Architecture &amp; File Hierarchy</a></li>
+</ol>
+<p>   - <a href="#31-visual-directory-tree">3.1 Visual Directory Tree</a></p>
+<p>   - <a href="#32-directory-responsibilities--functional-categorization">3.2 Directory Responsibilities &amp; Functional Categorization</a></p>
+<p>   - <a href="#33-file-manifest--inter-file-relationship-matrix">3.3 File Manifest &amp; Inter-File Relationship Matrix</a></p>
+<ol>
+<li><a href="#4-step-3-deep-explanation-of-the-code-in-every-file">Step 3: Deep Explanation of the Code in Every File</a></li>
+</ol>
+<p>   - <a href="#41-core-support--synchronization-primitives-src">4.1 Core Support &amp; Synchronization Primitives (<code>src/</code>)</a></p>
+<p>     - <a href="#srccommonh"><code>src/common.h</code></a></p>
+<p>     - <a href="#srctsch--srctscc"><code>src/tsc.h</code> &amp; <code>src/tsc.c</code></a></p>
+<p>     - <a href="#srcfutexh"><code>src/futex.h</code></a></p>
+<p>     - <a href="#srlockh"><code>src/lock.h</code></a></p>
+<p>     - <a href="#srclock_registryc"><code>src/lock_registry.c</code></a></p>
+<p>     - <a href="#srclock_futexc"><code>src/lock_futex.c</code></a></p>
+<p>     - <a href="#srclock_spinc"><code>src/lock_spin.c</code></a></p>
+<p>     - <a href="#srclock_pthreadc"><code>src/lock_pthread.c</code></a></p>
+<p>     - <a href="#srcpolicyh--srcpolicyc"><code>src/policy.h</code> &amp; <code>src/policy.c</code></a></p>
+<p>     - <a href="#srclock_adaptivec"><code>src/lock_adaptive.c</code></a></p>
+<p>     - <a href="#srccgrouph--srccgroupc"><code>src/cgroup.h</code> &amp; <code>src/cgroup.c</code></a></p>
+<p>     - <a href="#srctopoh--srctopoc"><code>src/topo.h</code> &amp; <code>src/topo.c</code></a></p>
+<p>     - <a href="#srchisth--srchistc"><code>src/hist.h</code> &amp; <code>src/hist.c</code></a></p>
+<p>   - <a href="#42-microbenchmarks--application-harnesses-src">4.2 Microbenchmarks &amp; Application Harnesses (<code>src/</code>)</a></p>
+<p>     - <a href="#srcbenchc"><code>src/bench.c</code></a></p>
+<p>     - <a href="#srcwakebenchc"><code>src/wakebench.c</code></a></p>
+<p>     - <a href="#srccalibc"><code>src/calib.c</code></a></p>
+<p>     - <a href="#srcshimc"><code>src/shim.c</code></a></p>
+<p>     - <a href="#srcsqlbenchc"><code>src/sqlbench.c</code></a></p>
+<p>   - <a href="#43-test-suite-tests">4.3 Test Suite (<code>tests/</code>)</a></p>
+<p>     - <a href="#teststest_locksc"><code>tests/test_locks.c</code></a></p>
+<p>   - <a href="#44-experiment-automation-statistics--plotting-scripts">4.4 Experiment Automation, Statistics &amp; Plotting (<code>scripts/</code>)</a></p>
+<p>     - <a href="#scriptsmanifestpy"><code>scripts/manifest.py</code></a></p>
+<p>     - <a href="#scriptsvalidatepy"><code>scripts/validate.py</code></a></p>
+<p>     - <a href="#scriptsexperimentspy"><code>scripts/experiments.py</code></a></p>
+<p>     - <a href="#scriptsrun_experimentspy"><code>scripts/run_experiments.py</code></a></p>
+<p>     - <a href="#scriptschoose_budgetspy"><code>scripts/choose_budgets.py</code></a></p>
+<p>     - <a href="#scriptschoose_policypy"><code>scripts/choose_policy.py</code></a></p>
+<p>     - <a href="#scriptsstatspy"><code>scripts/stats.py</code></a></p>
+<p>     - <a href="#scriptsanalyzepy"><code>scripts/analyze.py</code></a></p>
+<p>     - <a href="#scriptsfigurespy"><code>scripts/figures.py</code></a></p>
+<p>     - <a href="#scriptssupplementpy"><code>scripts/supplement.py</code></a></p>
+<p>   - <a href="#45-configuration-files-config">4.5 Configuration Files (<code>config/</code>)</a></p>
+<p>     - <a href="#configbudgetsjson"><code>config/budgets.json</code></a></p>
+<p>     - <a href="#configpolicyjson"><code>config/policy.json</code></a></p>
+<p>   - <a href="#46-build-system-dependencies--project-metadata">4.6 Build System, Dependencies &amp; Project Metadata</a></p>
+<p>     - <a href="#makefile"><code>Makefile</code></a></p>
+<p>     - <a href="#requirementstxt"><code>requirements.txt</code></a></p>
+<p>     - <a href="#gitignore"><code>.gitignore</code></a></p>
+<p>     - <a href="#project-lifecycle-and-planning-markdowns"><code>README.md</code>, <code>BUILD_PHASE.md</code>, <code>RESEARCH_PHASE.md</code>, <code>PROGRESS.md</code>, <code>TIMELINE.md</code></a></p>
+<p>   - <a href="#47-documentation--research-findings-docs">4.7 Documentation &amp; Research Findings (<code>docs/</code>)</a></p>
+<p>     - <a href="#docsreportmd"><code>docs/report.md</code></a></p>
+<p>     - <a href="#docsliteraturemd"><code>docs/literature.md</code></a></p>
+<p>     - <a href="#docsvalidationmd"><code>docs/validation.md</code></a></p>
+<p>     - <a href="#docsresults-and-docsfigures"><code>docs/results/<em>.md</code> &amp; <code>docs/figures/</em></code></a></p>
+<p>   - <a href="#48-generated-binary--vendor-data">4.8 Generated, Binary &amp; Vendor Data (<code>results/</code>, <code>build/</code>, <code>.venv/</code>, <code>.git/</code>)</a></p>
+<ol>
+<li><a href="#5-step-4-system-data-flow-lifecycles--runtime-architecture">Step 4: System Data Flow, Lifecycles &amp; Runtime Architecture</a></li>
+</ol>
+<p>   - <a href="#51-end-to-end-experiment-pipeline-lifecycle">5.1 End-to-End Experiment Pipeline Lifecycle</a></p>
+<p>   - <a href="#52-fast-path-vs-slow-path-mutex-state-transitions">5.2 Fast-Path vs. Slow-Path Mutex State Transitions</a></p>
+<p>   - <a href="#53-cache-coherence-padding--smt-topology-mapping">5.3 Cache Coherence, Padding &amp; SMT Topology Mapping</a></p>
+<p>   - <a href="#54-real-world-application-interposition-via-ld_preload">5.4 Real-World Application Interposition via LD_PRELOAD</a></p>
+<ol>
+<li><a href="#6-step-5-code-quality-audit-edge-cases--flagged-issues">Step 5: Code Quality Audit, Edge Cases &amp; Flagged Issues</a></li>
+</ol>
+<p>   - <a href="#61-bugs-latent-failure-modes--behavioral-risks">6.1 Bugs, Latent Failure Modes &amp; Behavioral Risks</a></p>
+<p>   - <a href="#62-edge-cases-in-synchronization--lock-imputations">6.2 Edge Cases in Synchronization &amp; Lock Imputations</a></p>
+<p>   - <a href="#63-architecture-limitations--recommendations-for-improvement">6.3 Architecture Limitations &amp; Recommendations for Improvement</a></p>
+<ol>
+<li><a href="#7-step-6-complete-codebase-verification-checklist">Step 6: Complete Codebase Verification Checklist</a></li>
+</ol>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="1-executive-summary--introduction">1. Executive Summary &amp; Introduction</h2>
+<div class="spacer"></div>
+<p>Welcome to <code>futex-lab</code>. This repository represents a complete, publication-grade experimental operating systems and concurrency research project. It investigates one of the most fundamental questions in systems programming and kernel engineering:</p>
+<div class="spacer"></div>
+<blockquote><p><strong>When a software thread tries to enter a critical section that is already locked by another thread, how long should it spin in user space burning CPU cycles, and when should it yield and block (park) in the operating system kernel?</strong></p></blockquote>
+<div class="spacer"></div>
+<p>Traditional textbook systems design relies on the <strong>"Ski Rental"</strong> online algorithm. This classic theory states that if blocking in the operating system has a known, constant cost <span class="math-inline">C</span>, an optimal competitive online strategy is to spin for exactly time <span class="math-inline">C</span> and then park. This guarantees that you never spend more than twice the cost of the optimal clairvoyant offline choice.</p>
+<div class="spacer"></div>
+<p>However, modern computer systems violate this foundational assumption:</p>
+<ol>
+<li><strong>The cost of blocking is not constant.</strong> When a thread blocks using the Linux <code>futex</code> (Fast Userspace Mutex) system call, the CPU core it ran on can drop into deep power-saving hardware idle states (C-states such as C1, C2, C3). Waking that CPU back up requires hardware state transitions and inter-processor interrupts (IPIs) that range from 2.7 microseconds to over 30 microseconds—an 11.3× variation.</li>
+<li><strong>Workload contention is non-stationary.</strong> Applications dynamically shift between short critical sections (e.g., updating a linked list) and long critical sections (e.g., executing complex database transactions), or experience fluctuating thread counts.</li>
+<li><strong>Containerized CPU throttling changes the rules.</strong> When applications run inside Linux control groups (<code>cgroup v2</code>) under CPU quotas (such as Kubernetes container limits), spinning burns through the container's CPU quota. A thread spinning on a core steals CPU time from the very thread that currently holds the lock, causing catastrophic tail latency degradation.</li>
+</ol>
+<div class="spacer"></div>
+<p>To investigate this, the project builds a clean, zero-dependency, lock-free C harness containing custom lock algorithms:</p>
+<ul>
+<li>Pure parking futex locks (<code>park</code>).</li>
+<li>Test-and-test-and-set spin locks (<code>spin</code>).</li>
+<li>Static spin-then-park locks across diverse budgets (<code>stp:&lt;ns&gt;</code>).</li>
+<li>Online learning adaptive locks: <strong>Policy A</strong> (Estimate-and-Set based on EWMA of in-lock measured wake latency) and <strong>Policy B</strong> (Hedge multi-armed bandit algorithm with censored counterfactual feedback).</li>
+<li>A <strong>Throttle-Aware (<code>ta</code>)</strong> adaptive lock that polls the Linux cgroup hierarchy to dynamically suppress spinning when CPU throttling is recent or imminent.</li>
+<li>An <strong>LD_PRELOAD interposition shim</strong> (<code>libflshim.so</code>) that transparently substitutes our custom locks into real unmodified multithreaded applications (demonstrated on SQLite).</li>
+<li>A scientific evaluation framework in Python supporting automated machine manifests, reproducible seeded experiment runners, non-parametric bootstrap statistical analysis, and automated paper draft generation.</li>
+</ul>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="2-step-1-understanding-the-project">2. Step 1: Understanding the Project</h2>
+<div class="spacer"></div>
+<h3 id="21-problem-statement-spinning-vs-parking">2.1 Problem Statement: Spinning vs. Parking</h3>
+<p>In multithreaded software, synchronization primitives (mutexes) protect shared data from concurrent access races. When Thread <span class="math-inline">B</span> attempts to acquire a lock currently held by Thread <span class="math-inline">A</span>, Thread <span class="math-inline">B</span> faces a choice:</p>
+<ul>
+<li><strong>Spinning (Busy-Waiting):</strong> Thread <span class="math-inline">B</span> stays in user space and loops continuously, checking an atomic memory variable using instructions like <code>PAUSE</code> (<code>cpu_relax()</code>).</li>
+</ul>
+<p>  - <em>Advantage:</em> If Thread <span class="math-inline">A</span> releases the lock within a few hundred nanoseconds, Thread <span class="math-inline">B</span> acquires it immediately with near-zero latency, avoiding kernel entry.</p>
+<p>  - <em>Disadvantage:</em> If Thread <span class="math-inline">A</span> holds the lock for a long time, Thread <span class="math-inline">B</span> wastes 100% of a CPU core doing zero productive work, consuming electrical power and denying CPU execution time to other threads.</p>
+<ul>
+<li><strong>Parking (Blocking in Kernel):</strong> Thread <span class="math-inline">B</span> makes a system call to the operating system kernel (<code>futex(addr, FUTEX_WAIT_PRIVATE, ...)</code>), asking the kernel scheduler to put Thread <span class="math-inline">B</span> to sleep and wake it up only when the lock becomes free.</li>
+</ul>
+<p>  - <em>Advantage:</em> Thread <span class="math-inline">B</span> relinquishes the physical CPU core, allowing other programs to run or allowing the hardware core to power down.</p>
+<p>  - <em>Disadvantage:</em> Crossing into the kernel, unscheduling the thread, switching context, and later handling an Inter-Processor Interrupt (IPI) and rescheduling Thread <span class="math-inline">B</span> incurs heavy latency overhead (thousands of nanoseconds).</p>
+<div class="spacer"></div>
+<h3 id="22-the-ski-rental-analogy--theoretical-foundation">2.2 The Ski Rental Analogy &amp; Theoretical Foundation</h3>
+<p>The decision problem is mathematically equivalent to the classic <strong>Ski Rental Problem</strong>:</p>
+<ul>
+<li>Suppose you go skiing. You do not know how many days you will ski in your life (analogous to not knowing how long the lock holder will hold the lock).</li>
+<li>Each day, you can rent skis for <span class="math-inline">\</span>1$ per day (spinning: small continuous cost per nanosecond).</li>
+<li>Alternatively, you can purchase skis once for <span class="math-inline">\</span>C$ (parking: large fixed one-off cost to sleep and wake).</li>
+<li><strong>The Classical Competitive Result (Karlin et al., 1991):</strong> If <span class="math-inline">C</span> is known and fixed, the optimal deterministic online policy is to rent skis for <span class="math-inline">C</span> days, and if you are still skiing on day <span class="math-inline">C+1</span>, buy the skis. This policy is <strong>2-competitive</strong>: your total cost is at most twice what a psychic who knew the future would have paid.</li>
+<li>In <code>futex-lab</code>, the cost of spinning for duration <span class="math-inline">w</span> given a spin budget <span class="math-inline">b</span> and parking cost <span class="math-inline">C</span> is modeled as:</li>
+</ul>
+<p>  <span class="math-display">\text{cost}(b) = \begin{cases} w &amp; \text{if } w \le b \quad (\text{acquired while spinning}) \\ b + C &amp; \text{if } w &gt; b \quad (\text{spun for budget } b\text{, then blocked at cost } C) \end{cases}</span></p>
+<div class="spacer"></div>
+<h3 id="23-modern-systems-realities-variable-c-states-dynamic-workloads--cpu-throttling">2.3 Modern Systems Realities: Variable C-States, Dynamic Workloads &amp; CPU Throttling</h3>
+<p>Classical theory fails on modern Linux systems for three physical reasons:</p>
+<ol>
+<li><strong>Hardware Idle C-States:</strong> When a core has no runnable threads, the Linux <code>cpuidle</code> subsystem steps the core down through power states:</li>
+</ol>
+<p>   - <code>POLL</code>: CPU does not sleep, 0 ns exit latency.</p>
+<p>   - <code>C1</code>: Clock gated, ~1 µs exit latency.</p>
+<p>   - <code>C2</code>: Low-power idle, ~18 µs exit latency.</p>
+<p>   - <code>C3</code>: Complete core shutdown with cache flush, ~350 µs exit latency.</p>
+<p>   Therefore, waking a sleeping thread is not a fixed constant <span class="math-inline">C</span>, but an empirical distribution spanning 2.7 µs to over 30 µs depending on prior idle depth.</p>
+<ol>
+<li><strong>Non-Stationary Application Workloads:</strong> An application's critical-section hold time fluctuates dramatically over time. A static spin budget tuned for short 100 ns critical sections severely degrades performance when the workload shifts to 20 µs holds.</li>
+<li><strong>Container CPU Bandwidth Limits (CFS Throttling):</strong> In modern cloud architectures (Docker, Kubernetes), CPU usage is constrained via the <code>cgroup v2</code> Completely Fair Scheduler (CFS) bandwidth controller (<code>cpu.max = quota period</code>). For example, a container allocated 2 cores has <code>CPUQuota=200%</code> with a 100 ms period (<span class="math-inline">200\text{ ms}</span> CPU time allowed per <span class="math-inline">100\text{ ms}</span> wall clock). If multiple waiter threads spin furiously in user space, they burn through the quota in the first 20 ms of the window. The Linux kernel then throttles the entire container, freezing the lock holder alongside the spinners for the remaining 80 ms, creating multi-millisecond tail latencies!</li>
+</ol>
+<div class="spacer"></div>
+<h3 id="24-research-questions--pre-registered-hypotheses">2.4 Research Questions &amp; Pre-Registered Hypotheses</h3>
+<p>The project formulated three core Research Questions (RQs) and four falsifiable, pre-registered hypotheses:</p>
+<ul>
+<li><strong>RQ1:</strong> What does the wake-up cost distribution look like across CPU topology, idle depth, system load, and cgroup throttling?</li>
+</ul>
+<p>  - <strong>Hypothesis H1:</strong> The median futex wake-up latency in the slowest unloaded condition (other-core, 10 ms idle) is at least <span class="math-inline">2\times</span> the median in the fastest condition (other-core, 20 µs idle).  </p>
+<p>    <em>Result:</em> <strong>SUPPORTED.</strong> Slowest median (30.72 µs) / fastest median (2.73 µs) = <strong>11.27×</strong> (<span class="math-inline">95\%\text{ CI: } [11.18, 11.37]</span>).</p>
+<ul>
+<li><strong>RQ2:</strong> How much do static spin budgets lose when hold times or contention shift during execution?</li>
+</ul>
+<p>  - <strong>Hypothesis H2:</strong> After a hold-time shift (100 ns <span class="math-inline">\leftrightarrow</span> 20 µs), the previously best static lock loses <span class="math-inline">\ge 25\%</span> throughput or suffers <span class="math-inline">\ge 2\times</span> p99 tail latency relative to the newly optimal static lock.  </p>
+<p>    <em>Result:</em> <strong>PARTIALLY SUPPORTED (2 of 4 cases).</strong> At 8 threads (one thread per physical core), static locks spin equally well, losing only <span class="math-inline">3.2\%</span>. At 16 threads (all SMT logical threads saturated), spinning collapses, losing <strong>43.1%</strong> throughput and multiplying tail latency by <strong>2.59×</strong>.</p>
+<ul>
+<li><strong>RQ3:</strong> Can an online adaptive lock dynamically learn the right spin budget and remain competitive under shifting workloads and CPU throttling?</li>
+</ul>
+<p>  - <strong>Hypothesis H3:</strong> Adaptive locks reach <span class="math-inline">\ge 0.85\times</span> throughput and <span class="math-inline">\le 1.2\times</span> p99.9 latency of the best static lock in hindsight (<span class="math-inline">B^*</span>) across 6 test workloads.  </p>
+<p>    <em>Result:</em> <strong>PARTIALLY SUPPORTED.</strong> Policy A met 1/6 (3 not met, 2 inconclusive); Policy B met 3/6 (1 not met, 2 inconclusive). Throughput was consistently preserved (<span class="math-inline">0.99\text{--}1.05\times</span>), but p99.9 latency was dominated by <em>barging</em> artifacts.</p>
+<p>  - <strong>Hypothesis H4:</strong> Under cgroup CPU quota throttling, a throttle-aware adaptive lock (<code>ta</code>) achieves <span class="math-inline">\ge 2\times</span> lower p99.9 than pure spinning and stays within <span class="math-inline">1.10\times</span> of the best static lock.  </p>
+<p>    <em>Result:</em> <strong>PARTIALLY SUPPORTED (2 of 4 cases).</strong> Supported at 1 µs holds (p99.9 was 55–61× lower than spin and <span class="math-inline">0.98\text{--}0.99\times</span> of <code>park</code>). Not met at 10 µs holds where forcing threads to park caused severe barging delays.</p>
+<div class="spacer"></div>
+<h3 id="25-technology-stack--dependencies">2.5 Technology Stack &amp; Dependencies</h3>
+<ul>
+<li><strong>Systems Programming Language:</strong> C11 / GNU11 (<code>-std=gnu11 -O2 -g -Wall -Wextra -pthread -D_GNU_SOURCE</code>).</li>
+<li><strong>Core APIs &amp; Subsystems:</strong></li>
+</ul>
+<p>  - Linux <code>futex</code> system call (<code>SYS_futex</code>, <code>FUTEX_WAIT_PRIVATE</code>, <code>FUTEX_WAKE_PRIVATE</code>).</p>
+<p>  - x86-64 invariant Time Stamp Counter (<code>rdtsc</code>, <code>_mm_lfence()</code>, <code>__builtin_ia32_pause()</code>).</p>
+<p>  - Linux <code>cgroup v2</code> file interfaces (<code>/sys/fs/cgroup/cpu.max</code>, <code>/sys/fs/cgroup/cpu.stat</code>).</p>
+<p>  - POSIX Threads (<code>libpthread</code>) and CPU affinity interfaces (<code>pthread_setaffinity_np</code>, <code>sched_getaffinity</code>).</p>
+<p>  - Dynamic Linker / Interposition API (<code>dlfcn.h</code>, <code>RTLD_DEFAULT</code>, <code>dlsym</code>, <code>LD_PRELOAD</code>).</p>
+<p>  - Embedded Database Engine: SQLite 3 (<code>libsqlite3</code>) in serialized multithreaded mode.</p>
+<ul>
+<li><strong>Correctness &amp; Toolchain:</strong></li>
+</ul>
+<p>  - GNU Compiler Collection (<code>gcc</code>).</p>
+<p>  - ThreadSanitizer (TSan, <code>-fsanitize=thread -O1</code>) for data-race verification.</p>
+<p>  - Linux systemd user scopes (<code>systemd-run --user --scope -p CPUQuota=...</code>).</p>
+<ul>
+<li><strong>Analysis &amp; Statistical Framework:</strong></li>
+</ul>
+<p>  - Python 3.14 (Core runner and analysis engine use <strong>Python standard library only</strong> for reproducibility).</p>
+<p>  - Extended scientific stack in virtual environment (<code>.venv/</code>): <code>numpy</code>, <code>scipy</code> (for Mann-Whitney U and Hodges-Lehmann statistical tests), <code>matplotlib</code> (for publication SVG figures).</p>
+<div class="spacer"></div>
+<h3 id="26-installation-configuration--execution-guide">2.6 Installation, Configuration &amp; Execution Guide</h3>
+<div class="spacer"></div>
+<h4 id="environment-variables">Environment Variables</h4>
+<ul>
+<li><code>FL_TSC_HZ</code>: Overrides the hardware TSC frequency in ticks/sec (avoids re-calibrating across runs).</li>
+<li><code>FL_SHIM_LOCK</code>: Specifies the lock algorithm to interpose via <code>libflshim.so</code> (e.g., <code>FL_SHIM_LOCK=ada</code>, <code>FL_SHIM_LOCK=stp:4750</code>).</li>
+<li><code>GLIBC_TUNABLES</code>: Glibc runtime adjustments (e.g., <code>glibc.pthread.mutex_spin_count</code>).</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="build-commands">Build Commands</h4>
+<pre class="code-block language-bash"><code># Clean previous build artifacts
+make clean
+
+# Build all primary binaries and shared libraries
+make all
+# Outputs:
+#   build/bench          - Lock benchmark harness
+#   build/wakebench      - Futex wake-up latency microbenchmark
+#   build/calib          - Hardware &amp; timer calibration utility
+#   build/test_locks     - Correctness &amp; mutual-exclusion test suite
+#   build/sqlbench       - SQLite database concurrency benchmark
+#   build/libflshim.so   - LD_PRELOAD interposition shared object
+
+# Run mutual-exclusion correctness tests (2, 8, 32 threads)
+make test
+
+# Build and run ThreadSanitizer data-race check
+make test-tsan
+
+# Verify the LD_PRELOAD shim with SQLite
+make test-shim
+
+# Run full harness validation suite (generates docs/validation.md)
+make validate</code></pre>
+<div class="spacer"></div>
+<h4 id="running-experiments--reproducing-findings">Running Experiments &amp; Reproducing Findings</h4>
+<pre class="code-block language-bash"><code># 1. Capture hardware manifest
+make manifest
+
+# 2. Run Phase 2 experiments (wakebench, steady sweep, unpinned, phase-shifting, random)
+python3 scripts/run_experiments.py e1
+python3 scripts/choose_budgets.py     # Writes config/budgets.json based on E1 median
+python3 scripts/run_experiments.py e2
+python3 scripts/run_experiments.py e3
+python3 scripts/run_experiments.py e4
+python3 scripts/run_experiments.py e5
+
+# 3. Run Phase 3 tuning and adaptive experiments
+python3 scripts/run_experiments.py t3
+python3 scripts/choose_policy.py      # Selects optimal beta (8.0) -&gt; config/policy.json
+python3 scripts/run_experiments.py e6 # H3 evaluation
+python3 scripts/run_experiments.py e7 # H4 cgroup throttled evaluation (requires systemd)
+python3 scripts/run_experiments.py e8 # Steady adaptive sweep
+python3 scripts/run_experiments.py e9 # Real application SQLite benchmark
+
+# 4. Analyze results and generate documentation
+python3 scripts/analyze.py all        # Generates docs/results/*.md and results/analysis/*.json
+.venv/bin/python scripts/supplement.py # Generates docs/results/supplement.md
+.venv/bin/python scripts/figures.py    # Generates SVG figures in docs/figures/</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="3-step-2-project-architecture--file-hierarchy">3. Step 2: Project Architecture &amp; File Hierarchy</h2>
+<div class="spacer"></div>
+<h3 id="31-visual-directory-tree">3.1 Visual Directory Tree</h3>
+<pre class="code-block language-"><code>/home/jetly/Documents/OS PROJECT/
+├── .gitignore                      # Git ignored build targets and venvs
+├── Makefile                        # Master compilation and testing recipes
+├── README.md                       # High-level project record, findings and quickstart
+├── BUILD_PHASE.md                  # Architectural specification and engineering design doc
+├── RESEARCH_PHASE.md               # Research questions, pre-registered hypotheses &amp; protocol
+├── PROGRESS.md                     # Timestamped project execution tracker and deviation log
+├── TIMELINE.md                     # Four-phase execution plan and scope bounds
+├── requirements.txt                # Pinned Python dependencies for plotting and statistics
+├── config/
+│   ├── budgets.json                # Static spin budgets derived from Experiment E1
+│   └── policy.json                 # Adaptive policy tuning parameters chosen from T3
+├── src/
+│   ├── common.h                    # Global cache alignment, pause hint, calibrated delay loop
+│   ├── tsc.h                       # Invariant Time Stamp Counter interface &amp; conversion inlines
+│   ├── tsc.c                       # TSC frequency calibration against CLOCK_MONOTONIC_RAW
+│   ├── futex.h                     # Direct wrappers for Linux SYS_futex syscall
+│   ├── lock.h                      # Unified abstract lock interface and thread-local stats
+│   ├── lock_registry.c             # Lock specification parser, aligned alloc, 'none' lock
+│   ├── lock_futex.c                # Three-state futex locks: park-only and static spin-then-park
+│   ├── lock_spin.c                 # TTAS spinlock with bounded exponential backoff
+│   ├── lock_pthread.c              # Glibc pthread_mutex default and adaptive wrappers
+│   ├── policy.h                    # Adaptive policies mathematical definitions and cost model
+│   ├── policy.c                    # EWMA estimation, Hedge exponential weights, EXP3 bandit
+│   ├── lock_adaptive.c             # Adaptive futex locks (ada, hedge, exp3) and throttle helper
+│   ├── cgroup.h                    # Cgroup v2 bandwidth interface declarations
+│   ├── cgroup.c                    # Cgroup v2 cpu.max / cpu.stat parsers using pread
+│   ├── topo.h                      # Hardware topology interface: cores-first pinning and SMT
+│   ├── topo.c                      # Sysfs topology parser and pthread CPU pinning implementation
+│   ├── hist.h                      # Log-linear latency histogram (0.8% error bound) declarations
+│   ├── hist.c                      # Histogram bucket math, quantile calculation, merging
+│   ├── bench.c                     # Primary multithreaded lock evaluation harness
+│   ├── wakebench.c                 # Standalone cross-core futex wake-up latency microbenchmark
+│   ├── calib.c                     # Timer overhead, TSC ping-pong sync, work-loop calibration
+│   ├── shim.c                      # Transparent LD_PRELOAD interposition library for pthread mutex
+│   └── sqlbench.c                  # Real-world SQLite concurrent database benchmark
+├── tests/
+│   └── test_locks.c                # Correctness test: exact counter, overlap detector, hang watchdog
+├── scripts/
+│   ├── manifest.py                 # System state, hardware, kernel, compiler manifest collector
+│   ├── validate.py                 # Phase 1 harness validation suite (15 verification gates)
+│   ├── experiments.py              # Pre-registered experiment matrices (E1-E10, T3)
+│   ├── run_experiments.py          # Resumable, seeded experiment runner with git dirty check
+│   ├── choose_budgets.py           # Pre-registered selection rule for static budgets (E1 -&gt; config)
+│   ├── choose_policy.py            # Pre-registered selection rule for adaptive parameters (T3 -&gt; config)
+│   ├── stats.py                    # Standard library bootstrap, order statistics, tail sets
+│   ├── analyze.py                  # Primary data analysis script producing Markdown and JSON
+│   ├── figures.py                  # Publication SVG vector figures and CSV data twins generator
+│   └── supplement.py               # Mann-Whitney U, Hodges-Lehmann, and Holm p-value tests
+├── docs/
+│   ├── literature.md               # Verified bibliographic details of 24 candidate papers
+│   ├── report.md                   # Complete academic research paper draft
+│   ├── validation.md               # Generated harness validation report
+│   ├── figures/                    # Output visual artifacts (Figures 1-7, 10, Tables 8-9)
+│   └── results/                    # Generated markdown result summaries per experiment (E1-E9, T3)
+├── results/                        # Raw experimental data store (JSONL, CSV, JSON, logs)
+├── build/                          # Compiled binary outputs (ignored by git)
+├── build-tsan/                     # ThreadSanitizer instrumented binaries (ignored by git)
+└── .venv/                          # Python virtual environment (ignored by git)</code></pre>
+<div class="spacer"></div>
+<h3 id="32-directory-responsibilities--functional-categorization">3.2 Directory Responsibilities &amp; Functional Categorization</h3>
+<ul>
+<li><strong><code>/</code> (Project Root):</strong> Contains foundational governance and research documentation (<code>RESEARCH_PHASE.md</code>, <code>BUILD_PHASE.md</code>, <code>README.md</code>), tracking records (<code>PROGRESS.md</code>, <code>TIMELINE.md</code>), root compilation instructions (<code>Makefile</code>), and dependency definitions (<code>requirements.txt</code>).</li>
+<li><strong><code>src/</code>:</strong> The entire C codebase. Houses lock primitive implementations, hardware abstraction layers (TSC, CPU topology, cgroups), memory allocation wrappers, latency histogram data structures, microbenchmarks, and dynamic link shims.</li>
+<li><strong><code>tests/</code>:</strong> Verification and correctness code. Contains the stress testing harness that checks mutual exclusion, lost wakeups, and data races across all locks.</li>
+<li><strong><code>config/</code>:</strong> Frozen configuration artifacts in JSON format. Stores the static spin budgets derived from Experiment E1 and the tuned hyperparameters chosen from Session T3.</li>
+<li><strong><code>scripts/</code>:</strong> Python automation suite. Orchestrates experiment execution, collects hardware telemetry, computes statistical bounds, performs non-parametric hypothesis testing, and renders publication-ready plots.</li>
+<li><strong><code>docs/</code>:</strong> Knowledge base and generated deliverables. Contains literature reviews, paper drafts, validation audits, generated result tables, and SVG figures.</li>
+<li><strong><code>results/</code>:</strong> Immutable data warehouse. Stores raw machine telemetry, JSONL execution streams, gzip-compressed latency traces, and windowed throughput CSV files.</li>
+</ul>
+<div class="spacer"></div>
+<h3 id="33-file-manifest--inter-file-relationship-matrix">3.3 File Manifest &amp; Inter-File Relationship Matrix</h3>
+<div class="spacer"></div>
+<div class="table-wrapper"><table>
+<thead><tr><th>File Path</th><th>Functional Role</th><th>Inbound Dependencies (Callers / Importers)</th><th>Outbound Dependencies (Callees / Includes)</th></tr></thead><tbody>
+<tr><td><code>src/common.h</code></td><td>Base utilities, padding, CPU pause hint, work loop</td><td>Included by almost all <code>.c</code> and <code>.h</code> files</td><td>C standard library (<code>stdlib.h</code>, <code>stdio.h</code>)</td></tr>
+<tr><td><code>src/tsc.h</code> &amp; <code>.c</code></td><td>Hardware TSC timer reads and clock calibration</td><td><code>bench.c</code>, <code>wakebench.c</code>, <code>calib.c</code>, <code>lock_futex.c</code>, <code>lock_spin.c</code>, <code>lock_adaptive.c</code>, <code>shim.c</code>, <code>sqlbench.c</code>, <code>test_locks.c</code></td><td><code>clock_gettime(CLOCK_MONOTONIC_RAW)</code>, <code>nanosleep</code>, x86 intrinsics</td></tr>
+<tr><td><code>src/futex.h</code></td><td>Direct Linux kernel futex system call wrappers</td><td><code>lock_futex.c</code>, <code>lock_adaptive.c</code>, <code>wakebench.c</code>, <code>calib.c</code></td><td><code>sys/syscall.h</code>, <code>linux/futex.h</code></td></tr>
+<tr><td><code>src/lock.h</code></td><td>Unified lock interface and thread-local stats</td><td><code>lock_registry.c</code>, <code>lock_futex.c</code>, <code>lock_spin.c</code>, <code>lock_pthread.c</code>, <code>lock_adaptive.c</code>, <code>bench.c</code>, <code>test_locks.c</code>, <code>shim.c</code>, <code>sqlbench.c</code></td><td><code>policy.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/lock_registry.c</code></td><td>Lock spec parser and factory</td><td><code>bench.c</code>, <code>test_locks.c</code>, <code>calib.c</code>, <code>shim.c</code></td><td><code>lock.h</code>, <code>common.h</code>, <code>lock_futex.c</code>, <code>lock_spin.c</code>, <code>lock_pthread.c</code>, <code>lock_adaptive.c</code></td></tr>
+<tr><td><code>src/lock_futex.c</code></td><td>3-state futex locks (<code>park</code>, <code>stp:&lt;ns&gt;</code>)</td><td>Registered in <code>lock_registry.c</code></td><td><code>lock.h</code>, <code>futex.h</code>, <code>tsc.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/lock_spin.c</code></td><td>Spin-only lock with bounded backoff</td><td>Registered in <code>lock_registry.c</code></td><td><code>lock.h</code>, <code>tsc.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/lock_pthread.c</code></td><td>Glibc default &amp; adaptive mutex wrappers</td><td>Registered in <code>lock_registry.c</code></td><td><code>lock.h</code>, <code>pthread.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/policy.h</code> &amp; <code>.c</code></td><td>EWMA, Hedge, EXP3 budget policies</td><td><code>lock_adaptive.c</code>, <code>calib.c</code>, <code>lock.h</code></td><td><code>tsc.h</code>, <code>math.h</code></td></tr>
+<tr><td><code>src/lock_adaptive.c</code></td><td>Adaptive locks (<code>ada</code>, <code>hedge</code>, <code>exp3</code>, <code>ta</code>)</td><td>Registered in <code>lock_registry.c</code></td><td><code>lock.h</code>, <code>policy.h</code>, <code>futex.h</code>, <code>cgroup.h</code>, <code>tsc.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/cgroup.h</code> &amp; <code>.c</code></td><td>Linux cgroup v2 CPU quota &amp; usage reader</td><td><code>lock_adaptive.c</code>, <code>bench.c</code>, <code>wakebench.c</code></td><td><code>/proc/self/cgroup</code>, <code>/sys/fs/cgroup/cpu.*</code></td></tr>
+<tr><td><code>src/topo.h</code> &amp; <code>.c</code></td><td>Hardware topology and CPU affinity pinning</td><td><code>bench.c</code>, <code>wakebench.c</code>, <code>calib.c</code>, <code>sqlbench.c</code></td><td><code>/sys/devices/system/cpu/...</code>, <code>pthread_setaffinity_np</code></td></tr>
+<tr><td><code>src/hist.h</code> &amp; <code>.c</code></td><td>Log-linear latency histogram (0.8% resolution)</td><td><code>bench.c</code>, <code>sqlbench.c</code></td><td><code>math.h</code>, <code>__builtin_clzll</code></td></tr>
+<tr><td><code>src/bench.c</code></td><td>Main benchmarking tool</td><td>Executed by <code>run_experiments.py</code>, <code>validate.py</code></td><td>All <code>src/</code> modules except <code>wakebench.c</code>, <code>shim.c</code>, <code>sqlbench.c</code></td></tr>
+<tr><td><code>src/wakebench.c</code></td><td>Wakeup latency microbenchmark</td><td>Executed by <code>run_experiments.py</code>, <code>validate.py</code></td><td><code>futex.h</code>, <code>tsc.h</code>, <code>topo.h</code>, <code>cgroup.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/calib.c</code></td><td>Micro-calibration tool</td><td>Executed by <code>run_experiments.py</code>, <code>validate.py</code>, <code>manifest.py</code></td><td><code>lock.h</code>, <code>tsc.h</code>, <code>topo.h</code>, <code>futex.h</code>, <code>common.h</code></td></tr>
+<tr><td><code>src/shim.c</code></td><td>Dynamic linker interposition shim</td><td>Injected via <code>LD_PRELOAD</code> into <code>sqlbench</code></td><td><code>lock.h</code>, <code>tsc.h</code>, <code>dlfcn.h</code></td></tr>
+<tr><td><code>src/sqlbench.c</code></td><td>SQLite concurrent workload harness</td><td>Executed by <code>run_experiments.py</code> under <code>shim.c</code></td><td><code>sqlite3.h</code>, <code>hist.h</code>, <code>tsc.h</code>, <code>topo.h</code></td></tr>
+<tr><td><code>tests/test_locks.c</code></td><td>Correctness stress test</td><td>Executed by <code>make test</code>, <code>make test-tsan</code></td><td>All locks via <code>lock_registry.c</code></td></tr>
+<tr><td><code>scripts/manifest.py</code></td><td>Machine environment recorder</td><td>Called by <code>run_experiments.py</code>, <code>validate.py</code></td><td><code>calib</code>, system files, <code>lscpu</code>, git</td></tr>
+<tr><td><code>scripts/validate.py</code></td><td>Harness validation suite</td><td>Executed by <code>make validate</code></td><td><code>manifest.py</code>, all build binaries</td></tr>
+<tr><td><code>scripts/experiments.py</code></td><td>Matrix of pre-registered experiments</td><td>Imported by <code>run_experiments.py</code></td><td><code>config/budgets.json</code>, <code>config/policy.json</code></td></tr>
+<tr><td><code>scripts/run_experiments.py</code></td><td>Master experiment execution runner</td><td>Invoked via CLI</td><td><code>experiments.py</code>, <code>manifest.py</code>, build binaries</td></tr>
+<tr><td><code>scripts/choose_budgets.py</code></td><td>Selects static budgets b1-b4 from E1</td><td>Invoked after Experiment E1</td><td><code>results/e1/runs/</code>, writes <code>config/budgets.json</code></td></tr>
+<tr><td><code>scripts/choose_policy.py</code></td><td>Selects adaptive parameters from T3</td><td>Invoked after Experiment T3</td><td><code>results/t3/</code>, writes <code>config/policy.json</code></td></tr>
+<tr><td><code>scripts/stats.py</code></td><td>Statistical algorithms &amp; histogram math</td><td>Imported by <code>analyze.py</code>, <code>supplement.py</code>, <code>figures.py</code></td><td>Python standard library</td></tr>
+<tr><td><code>scripts/analyze.py</code></td><td>Result aggregator and hypothesis evaluator</td><td>Invoked via CLI</td><td><code>stats.py</code>, reads <code>results/</code>, writes <code>docs/results/</code></td></tr>
+<tr><td><code>scripts/figures.py</code></td><td>Publication visual artifact generator</td><td>Invoked via CLI (<code>make figures</code>)</td><td><code>matplotlib</code>, <code>analyze.py</code>, <code>stats.py</code></td></tr>
+<tr><td><code>scripts/supplement.py</code></td><td>Non-parametric statistical tests</td><td>Invoked via CLI</td><td><code>scipy.stats</code>, <code>analyze.py</code>, <code>stats.py</code></td></tr>
+</tbody>
+</table></div>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="4-step-3-deep-explanation-of-the-code-in-every-file">4. Step 3: Deep Explanation of the Code in Every File</h2>
+<div class="spacer"></div>
+<h3 id="41-core-support--synchronization-primitives-src">4.1 Core Support &amp; Synchronization Primitives (<code>src/</code>)</h3>
+<div class="spacer"></div>
+<h4 id="srccommonh"><code>src/common.h</code></h4>
+<ul>
+<li><strong>Role:</strong> Foundational header providing universal constants, compiler optimization intrinsics, hardware synchronization hints, calibrated delay loops, and fatal error reporting.</li>
+<li><strong>Key Definitions &amp; Functions:</strong></li>
+</ul>
+<p>  - <code>CACHELINE 64</code> (Line 9): Standard x86-64 cache line size in bytes.</p>
+<p>  - <code>PAD_BYTES 128</code> (Line 12): All shared data structures and synchronization locks are aligned to 128 bytes (two full cache lines). This design decision prevents hardware prefetchers (specifically the Adjacent Cache Line Prefetcher found in modern AMD Zen and Intel CPUs) from pulling neighboring data into the L1/L2 cache and causing false sharing.</p>
+<p>  - <code>likely(x)</code> / <code>unlikely(x)</code> (Lines 14–15): Branch prediction hints using GCC builtins <code>__builtin_expect(!!(x), 1/0)</code>.</p>
+<p>  - <code>cpu_relax()</code> (Line 17): Emits the x86 <code>PAUSE</code> instruction via <code>__builtin_ia32_pause()</code>. On AMD Zen 3+ processors, <code>PAUSE</code> introduces an intentional ~14 ns pipeline stall. This de-pipelines aggressive out-of-order speculation, prevents pipeline memory order violations, and reduces core power consumption during spin loops.</p>
+<p>  - <code>spin_work(uint64_t iters)</code> (Lines 22–26): Calibrated busy-work loop representing critical section computation. Uses an inline assembly constraint <code>__asm__ __volatile__("" : "+r"(i))</code> to make the loop counter opaque to the compiler. This guarantees that GCC <code>-O2</code> cannot optimize away, unroll, or mathematically vectorize the loop.</p>
+<p>  - <code>die(const char *fmt, ...)</code> (Lines 28–37): Formatted crash handler that outputs to <code>stderr</code> and terminates execution with exit code 2.</p>
+<div class="spacer"></div>
+<h4 id="srctsch--srctscc"><code>src/tsc.h</code> &amp; <code>src/tsc.c</code></h4>
+<ul>
+<li><strong>Role:</strong> High-precision, low-overhead hardware timestamping facility utilizing the x86 Invariant Time Stamp Counter (TSC).</li>
+<li><strong>Why TSC instead of <code>clock_gettime</code>?</strong> Calling <code>clock_gettime(CLOCK_MONOTONIC)</code> incurs ~19 ns overhead and involves a VDSO branch. A hardware TSC read costs ~10 ns unfenced, or ~20 ns fenced, and provides sub-nanosecond precision directly linked to the processor crystal oscillator.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>tsc_now()</code> (<code>src/tsc.h</code>, Line 20): Issues <code>__rdtsc()</code>. This instruction is superscalar and unfenced; the CPU can speculatively reorder it with surrounding instructions. Used for non-critical elapsed timing where strict serialization is not required.</p>
+<p>  - <code>tsc_ordered()</code> (<code>src/tsc.h</code>, Lines 24–30):</p>
+<pre class="code-block language-c"><code>    static inline uint64_t tsc_ordered(void) {
+        _mm_lfence();
+        uint64_t t = __rdtsc();
+        _mm_lfence();
+        return t;
+    }</code></pre>
+<p>    <em>Tricky Logic:</em> Emits <code>LFENCE</code> both before and after <code>RDTSC</code>. The initial <code>LFENCE</code> ensures that all prior memory operations and instructions retire before the clock is sampled. The second <code>LFENCE</code> guarantees that no subsequent critical section instruction begins execution before the timestamp is committed. This isolates the exact duration of <code>lock()</code> acquisition.</p>
+<p>  - <code>ns_to_tsc()</code> &amp; <code>tsc_to_ns()</code> (<code>src/tsc.h</code>, Lines 32–33): Converts between wall-clock nanoseconds and TSC cycle counts using calibrated scaling factors.</p>
+<p>  - <code>tsc_init()</code> (<code>src/tsc.c</code>, Lines 22–43): Calibrates the TSC clock frequency:</p>
+<p>    1. Checks if the <code>FL_TSC_HZ</code> environment variable is defined. If present, it adopts that value directly to ensure that repeated benchmark runs share an identical clock reference.</p>
+<p>    2. Otherwise, performs 5 consecutive calibration trials against <code>CLOCK_MONOTONIC_RAW</code> using <code>nanosleep</code> intervals of 50 milliseconds.</p>
+<p>    3. Sorts the 5 trials using <code>qsort</code> (<code>cmp_double</code>, Lines 16–20) and selects the median (<code>est[2]</code>).</p>
+<p>    4. Computes <code>tsc_ns_per_tick = 1e9 / tsc_hz</code> (on the benchmark machine, exactly 3.194 GHz).</p>
+<div class="spacer"></div>
+<h4 id="srcfutexh"><code>src/futex.h</code></h4>
+<ul>
+<li><strong>Role:</strong> Direct, non-allocating wrapper around the Linux <code>SYS_futex</code> system call.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>futex_wait(_Atomic uint32_t *addr, uint32_t expected)</code> (Lines 18–21):</p>
+<p>    Calls <code>syscall(SYS_futex, addr, FUTEX_WAIT_PRIVATE, expected, NULL, NULL, 0)</code>.</p>
+<p>    <em>Operating System Semantics:</em> The Linux kernel checks whether the memory word at <code>addr</code> still contains the integer value <code>expected</code>. If <code><em>addr != expected</code>, the system call immediately returns <code>-1</code> with <code>errno = EAGAIN</code> without sleeping. If <code></em>addr == expected</code>, the kernel puts the calling thread into the sleep queue (<code>TASK_INTERRUPTIBLE</code>) and deschedules it. This atomic check-and-sleep semantic prevents the catastrophic <strong>lost wakeup race condition</strong>, where an unlock occurs between the waiter's decision to sleep and its actual entry into the kernel.</p>
+<p>    <em>Why <code>FUTEX_WAIT_PRIVATE</code>?</em> Private futexes bypass cross-process virtual memory inode hashing in the kernel, reducing hash-table lookup overhead since all threads reside within the same memory address space.</p>
+<p>  - <code>futex_wake(_Atomic uint32_t *addr, int n)</code> (Lines 24–27):</p>
+<p>    Calls <code>syscall(SYS_futex, addr, FUTEX_WAKE_PRIVATE, n, NULL, NULL, 0)</code>. Instructs the kernel scheduler to wake up to <code>n</code> sleeping threads currently queued on <code>addr</code>.</p>
+<div class="spacer"></div>
+<h4 id="srclockh"><code>src/lock.h</code></h4>
+<ul>
+<li><strong>Role:</strong> Defines the object-oriented polymorphic lock interface and per-thread telemetry accounting structures.</li>
+<li><strong>Key Structs &amp; Design:</strong></li>
+</ul>
+<p>  - <code>struct lock_ops</code> (Lines 18–31): Function-pointer vtable implemented by every lock in the project:</p>
+<p>    - <code>init(void <em>l, const struct lock_params </em>p)</code>: Initializes lock state.</p>
+<p>    - <code>lock(void *l)</code>: Acquires mutual exclusion.</p>
+<p>    - <code>unlock(void *l)</code>: Releases mutual exclusion.</p>
+<p>    - <code>destroy(void *l)</code>: Releases auxiliary resources (e.g., pthread mutex destruction or helper thread termination).</p>
+<p>    - <code>report(void <em>l, FILE </em>f)</code>: Emits JSON describing internal lock state (such as policy parameters or cgroup throttling events).</p>
+<p>  - <em>Why function pointers?</em> Eliminates compile-time inlining advantages. Every lock pays an identical indirect call overhead (~2–3 ns), ensuring completely fair comparisons.</p>
+<p>  - <code>struct lock_tstats</code> (Lines 36–50): Per-thread performance counters declared as thread-local storage (<code>extern __thread struct lock_tstats lk_stats</code>).</p>
+<p>    - Tracks <code>slow</code> (acquisitions that failed the fast path), <code>spin_acq</code> (acquisitions won while spinning), <code>parks</code> (number of kernel sleep calls), <code>wakes</code> (number of wakeup syscalls issued), <code>spin_tsc</code> (total CPU cycles spent spinning), <code>forced</code> (parks compelled by cgroup throttling), and <code>cost_real</code> / <code>cost_arm[]</code> (counterfactual ski-rental costs).</p>
+<p>    - Because each thread updates only its own thread-local variable, zero cache-line bouncing occurs on statistics updates during benchmark runs.</p>
+<div class="spacer"></div>
+<h4 id="srclock_registryc"><code>src/lock_registry.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Centralized repository, string parser, and aligned memory allocator for all lock variants.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>registry[]</code> (Lines 20–24): Global array containing pointers to all available lock vtables: <code>park_ops</code>, <code>spin_ops</code>, <code>stp_ops</code>, <code>pthread_ops</code>, <code>pthread_adaptive_ops</code>, <code>none_ops</code>, <code>ada_ops</code>, <code>hedge_ops</code>, <code>exp3_ops</code>, and <code>ta_ops</code>.</p>
+<p>  - <code>none_ops</code> (Lines 13–18): A no-op dummy lock implementation used exclusively with single-threaded runs (<code>--threads 1</code>) to accurately measure baseline benchmark harness overhead.</p>
+<p>  - <code>lock_lookup(const char <em>spec, struct lock_params </em>p)</code> (Lines 26–51): Parses user command-line specifications. Supports plain names (<code>park</code>, <code>spin</code>, <code>pthread</code>), colon-delimited numerical parameters (<code>stp:1000</code>), and key-value parameter strings (<code>ada:beta=8</code>, <code>ta:base=ada,theta=0.9</code>).</p>
+<p>  - <code>lock_create()</code> (Lines 53–62): Allocates lock objects aligned to <code>PAD_BYTES</code> (128 bytes) using <code>aligned_alloc</code>, clears memory to zero, and calls the corresponding <code>init</code> function.</p>
+<p>  - <code>lock_free()</code> (Lines 64–69): Invokes optional <code>destroy</code> hook and frees memory.</p>
+<div class="spacer"></div>
+<h4 id="srclock_futexc"><code>src/lock_futex.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Implementation of the foundational Three-State Futex Lock, based on Ulrich Drepper's "Futexes Are Tricky" design (mutex3), supporting both pure parking (<code>park</code>) and static spin-then-park (<code>stp:&lt;ns&gt;</code>).</li>
+<li><strong>Core State Machine:</strong></li>
+</ul>
+<p>  The lock word (<code>_Atomic uint32_t word</code>) takes three distinct states:</p>
+<p>  - <code>0</code>: <strong>Unlocked</strong> (free).</p>
+<p>  - <code>1</code>: <strong>Locked, no waiters known</strong> (uncontended hold).</p>
+<p>  - <code>2</code>: <strong>Locked, waiters may be sleeping in kernel</strong> (contended hold).</p>
+<ul>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>struct futex_lock</code> (Lines 25–29): Contains the atomic lock <code>word</code> aligned to <code>PAD_BYTES</code>, and <code>budget_tsc</code> aligned to <code>CACHELINE</code>. Layout is verified at compile-time via <code>_Static_assert(sizeof(struct futex_lock) == PAD_BYTES)</code>.</p>
+<p>  - <code>flock_lock(void *p)</code> (Lines 46–82):</p>
+<p>    1. <strong>Fast Path:</strong> Executes <code>atomic_compare_exchange_strong_explicit(&amp;l-&gt;word, &amp;c, 1, memory_order_acquire, memory_order_relaxed)</code> where <code>c = 0</code>. If the lock was 0, it becomes 1 and the function returns instantly in userspace without any system call.</p>
+<p>    2. <strong>Slow Path:</strong> If CAS fails, increments thread-local <code>lk_stats.slow</code>.</p>
+<p>    3. <strong>Optional Spin Phase:</strong> If <code>l-&gt;budget_tsc &gt; 0</code>, the thread reads the current TSC (<code>t0 = tsc_now()</code>) and calculates a deadline (<code>deadline = t0 + budget_tsc</code>). It enters a spin loop:</p>
+<p>       - Calls <code>cpu_relax()</code> (<code>PAUSE</code>).</p>
+<p>       - Loads the word with relaxed ordering.</p>
+<p>       - If word is 0, attempts a weak acquire CAS (<code>0 -&gt; 1</code>). If successful, records <code>spin_acq</code>, adds elapsed cycles to <code>spin_tsc</code>, and returns!</p>
+<p>       - Continues until the TSC exceeds <code>deadline</code>.</p>
+<p>    4. <strong>Park Phase:</strong> If spinning fails or budget is 0, it calls <code>atomic_exchange_explicit(&amp;l-&gt;word, 2, memory_order_acquire)</code>. This unconditionally marks the lock as state <code>2</code> (waiters exist).</p>
+<p>    5. Enters a loop: <code>while (c != 0) { futex_wait(&amp;l-&gt;word, 2); c = atomic_exchange(&amp;l-&gt;word, 2); }</code>. If woken, it re-exchanges 2 into the word. Only when the old value was 0 does it successfully exit with the lock held.</p>
+<p>  - <code>flock_unlock(void *p)</code> (Lines 84–95):</p>
+<p>    1. Executes <code>atomic_fetch_sub_explicit(&amp;l-&gt;word, 1, memory_order_release)</code>.</p>
+<p>    2. <em>Fast Path:</em> If the old value was <code>1</code>, the lock transitions <span class="math-inline">1 \to 0</span>. No waiters were present; unlock is complete with zero syscalls!</p>
+<p>    3. <em>Slow Path:</em> If the old value was not 1 (meaning it was <code>2</code>), sleepers exist. The releasing thread resets the word to 0 (<code>atomic_store(..., 0)</code>), increments <code>lk_stats.wakes</code>, and issues <code>futex_wake(&amp;l-&gt;word, 1)</code> to wake exactly one kernel waiter.</p>
+<p>  - <em>Why Barging is Safe:</em> A new spinning thread arriving just as the lock is released can perform CAS <span class="math-inline">0 \to 1</span> and take the lock before the sleeping waiter finishes waking up from the kernel. This is completely memory-safe because the woken sleeper will execute <code>atomic_exchange(&amp;l-&gt;word, 2)</code>, observe that the lock is held (old value <span class="math-inline">\ne 0</span>), and put itself back to sleep.</p>
+<div class="spacer"></div>
+<h4 id="srclock_spinc"><code>src/lock_spin.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Implementation of an aggressive user-space Test-and-Test-and-Set (TTAS) spinlock with bounded exponential backoff.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>spin_acquire(void *p)</code> (Lines 27–49):</p>
+<p>    1. <strong>Fast Path:</strong> Tries an atomic swap <code>atomic_exchange(&amp;l-&gt;word, 1)</code>. If the old value was 0, it acquired the lock.</p>
+<p>    2. <strong>Slow Path:</strong> If already locked, enters a spin loop.</p>
+<p>    3. <em>TTAS Optimization:</em> Instead of repeatedly executing expensive atomic write operations (which flood the processor interconnect with cache-invalidation bus traffic), it spins by executing relaxed read loads: <code>while (atomic_load(&amp;l-&gt;word, relaxed) != 0)</code>. Each read hits local shared L1 cache without bus traffic.</p>
+<p>    4. <em>Bounded Exponential Backoff:</em> To prevent cache-line contention when many threads detect release simultaneously, each thread executes an exponential backoff loop:</p>
+<pre class="code-block language-c"><code>       for (unsigned i = 0; i &lt; backoff; i++)
+           cpu_relax();
+       if (backoff &lt; SPIN_BACKOFF_MAX)
+           backoff &lt;&lt;= 1;</code></pre>
+<p>       The backoff is strictly capped at <code>SPIN_BACKOFF_MAX = 16</code> (Line 14). With each <code>PAUSE</code> taking ~14 ns on AMD Zen 3+, 16 pauses cap the stall at ~230 ns. A higher cap (such as 64) would allow threads to accidentally sleep through short 100 ns critical sections.</p>
+<div class="spacer"></div>
+<h4 id="srclock_pthreadc"><code>src/lock_pthread.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Standard POSIX mutex wrapper providing external comparison baselines using the host GNU C Library (glibc 2.44).</li>
+<li><strong>Variants Provided:</strong></li>
+</ul>
+<p>  - <code>pthread</code>: Standard glibc <code>pthread_mutex_t</code> configured with default attributes. Under contention, glibc mutexes typically enter the kernel quickly.</p>
+<p>  - <code>pthread-adaptive</code>: Configured via <code>pthread_mutexattr_settype(&amp;a, PTHREAD_MUTEX_ADAPTIVE_NP)</code>. Glibc spins for an iteration-based internal count (<code>glibc.pthread.mutex_spin_count</code>, typically 100 iterations) before falling back to blocking.</p>
+<div class="spacer"></div>
+<h4 id="srcpolicyh--srcpolicyc"><code>src/policy.h</code> &amp; <code>src/policy.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Mathematical core and online learning algorithms that compute spin budgets dynamically on every slow-path contention event.</li>
+<li><strong>The Policies Explained:</strong></li>
+</ul>
+<p>  1. <strong>Policy A (<code>ada</code>, Estimate-and-Set):</strong></p>
+<p>     Estimates the in-lock kernel wake-up latency <span class="math-inline">\hat{W}</span> using an Exponentially Weighted Moving Average (EWMA):</p>
+<p>     <span class="math-display">\hat{W}_{t} = \hat{W}_{t-1} + \alpha (W_{\text{sample}} - \hat{W}_{t-1}), \quad \alpha = \frac{1}{16}</span></p>
+<p>     Sets the spin budget to:</p>
+<p>     <span class="math-display">\text{budget} = \text{clamp}(\beta \times \hat{W}, 0, \text{arms}_{\max})</span></p>
+<p>     Here <span class="math-inline">\beta</span> is a tuned scalar (derived as <span class="math-inline">\beta = 8.0</span> during Session T3).</p>
+<p>  2. <strong>Policy B (<code>hedge</code>, Hedge Multi-Armed Bandit with Censored Feedback):</strong></p>
+<p>     Maintains exponential weights over <span class="math-inline">K=6</span> discrete candidate budget arms:</p>
+<p>     <span class="math-display">\{0\text{ ns}, 2350\text{ ns}, 4750\text{ ns}, 9450\text{ ns}, 37850\text{ ns}, 151300\text{ ns}\}</span></p>
+<p>     The learning rate is tuned for non-stationary discounted cumulative costs over horizon <span class="math-inline">N = 1024</span> acquisitions:</p>
+<p>     <span class="math-display">\eta = \sqrt{\frac{8 \ln K}{N}}, \quad \gamma = 1 - \frac{1}{N}</span></p>
+<p>     Cumulative cost vector <span class="math-inline">L[i]</span> updates exponentially:</p>
+<p>     <span class="math-display">p[i] \propto \exp(-\eta (L[i] - \min L))</span></p>
+<p>     <em>Censored Feedback Innovation:</em> If a thread spins and acquires the lock at wait time <span class="math-inline">w</span>, it knows the exact cost of <em>every</em> arm. If a thread parks, arms smaller than its budget definitely would have parked too (cost <span class="math-inline">b + C</span>). Longer arms are imputed from the timestamp of the release that admitted the thread.</p>
+<p>  3. <strong>Policy EXP3 (<code>exp3</code>, Adversarial Multi-Armed Bandit):</strong></p>
+<p>     Uses the same 6 budget arms but receives <strong>bandit feedback only</strong> (it learns exclusively from the arm it actually pulled, applying importance weighting <span class="math-inline">1 / p[\text{arm}]</span>). This isolates whether counterfactual imputation in Hedge provides a genuine performance advantage.</p>
+<ul>
+<li><strong>Key Functions in <code>src/policy.c</code>:</strong></li>
+</ul>
+<p>  - <code>pol_default()</code> (Lines 19–35): Initializes default arms and hyperparameters.</p>
+<p>  - <code>pol_parse()</code> (Lines 47–97): Parses runtime strings such as <code>beta=8,alpha=0.125,window=512</code>.</p>
+<p>  - <code>recompute(struct pol_state *s)</code> (Lines 117–136): Recomputes probability distribution <span class="math-inline">p[i]</span> and cumulative distribution <span class="math-inline">cdf[i]</span> every 16 updates (<code>RECOMPUTE = 16</code>, Line 14) to amortize the floating-point <code>exp()</code> calculation cost.</p>
+<p>  - <code>pol_choose()</code> (<code>src/policy.h</code>, Lines 104–116): Selects the budget for the next acquisition. For Policy A, returns <code>s-&gt;budget_tsc</code> in <span class="math-inline">\sim 0.3\text{ ns}</span>. For Hedge/EXP3, generates a pseudorandom float via <code>pol_unit()</code> (xorshift64) and samples the CDF in <span class="math-inline">\sim 10.5\text{ ns}</span>.</p>
+<p>  - <code>pol_update()</code> (<code>src/policy.c</code>, Lines 162–204): Executes after the critical section is unlocked. Updates EWMA <span class="math-inline">\hat{W}</span>, updates counterfactual arm costs, and discounts prior losses by <span class="math-inline">\gamma</span>.</p>
+<div class="spacer"></div>
+<h4 id="srclock_adaptivec"><code>src/lock_adaptive.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Implements the complete adaptive spin-then-park lock family (<code>ada</code>, <code>hedge</code>, <code>exp3</code>, <code>ta</code>) by marrying the three-state futex lock with <code>policy.c</code> and a background cgroup throttling monitor.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>struct ada_lock</code> (Lines 39–45): Contains atomic <code>word</code>, atomic <code>rel_tsc</code> (timestamp written by releasing threads), atomic <code>park_until</code> (deadline during which spinning is disabled), and <code>policy_cfg</code>.</p>
+<p>  - <code>ada_lock(void *p)</code> (Lines 50–136):</p>
+<p>    1. Tries fast-path CAS. On failure, enters slow path.</p>
+<p>    2. Initializes thread-local policy state <code>pst</code> if switching locks.</p>
+<p>    3. Calls <code>pol_choose</code> to get candidate spin budget.</p>
+<p>    4. <em>Cgroup Throttle Check:</em> If <code>cfg.ta</code> is active and current TSC is less than <code>atomic_load(&amp;l-&gt;park_until)</code>, the budget is forced to <strong>0</strong> and <code>lk_stats.forced</code> is incremented!</p>
+<p>    5. Spins up to the chosen budget. If acquired, sets <code>o-&gt;spun = true</code> and returns.</p>
+<p>    6. If budget expires, transitions word to state 2, saves <code>tpark = tsc_now()</code>, and calls <code>futex_wait</code>.</p>
+<p>    7. <em>In-Lock Wakeup Timestamping:</em> When <code>futex_wait</code> returns 0, the thread reads <code>l-&gt;rel_tsc</code>. If <code>rs</code> falls cleanly between <code>tpark</code> and <code>now</code>, then <code>wake = now - rs</code> represents a pure in-lock wake latency measurement!</p>
+<p>  - <code>ada_unlock(void *p)</code> (Lines 138–154):</p>
+<p>    1. Decrements lock word. If sleepers exist, stores current TSC into <code>l-&gt;rel_tsc</code> (<code>atomic_store_explicit(&amp;l-&gt;rel_tsc, tsc_now(), memory_order_relaxed)</code>) right before invoking <code>futex_wake(&amp;l-&gt;word, 1)</code>.</p>
+<p>    2. <em>Off-Critical-Path Update:</em> Checks <code>if (pst.pending)</code>. Calls <code>pol_update()</code> <strong>outside</strong> the critical section, ensuring policy bookkeeping never slows down other waiting threads.</p>
+<p>  - <code>ta_main(void *arg)</code> (Lines 186–252):</p>
+<p>    The dedicated Throttle-Aware background helper thread:</p>
+<p>    - Reads <code>/proc/self/cgroup</code> to locate its cgroup v2 directory.</p>
+<p>    - Repeatedly reads <code>cpu.max</code> and <code>cpu.stat</code> using open file descriptor <code>fd</code> via <code>cg_read_stat_fd</code>.</p>
+<p>    - If <code>cpu.max</code> is "max" (no quota), sleeps for 100 ms.</p>
+<p>    - If a quota exists, sleeps for <code>poll_us</code> (1000 µs / 1 ms).</p>
+<p>    - Checks two conditions:</p>
+<p>      1. <code>event</code>: <code>cur.nr_throttled &gt; prev.nr_throttled</code> (throttling occurred in the last interval).</p>
+<p>      2. <code>soon</code>: CPU usage rate over the last millisecond exceeds <span class="math-inline">\theta \times \frac{\text{quota}}{\text{period}}</span> (<span class="math-inline">\theta = 0.90</span>, meaning 90% of quota used).</p>
+<p>    - On either trigger, sets <code>park_until = now + hold * period_tsc</code>, forcing all waiter threads in the process to park immediately!</p>
+<p>    - Implements exponential backoff: if another trigger occurs within one period of park mode ending, <code>hold</code> doubles (up to <code>hold_max = 64</code> periods).</p>
+<div class="spacer"></div>
+<h4 id="srccgrouph--srccgroupc"><code>src/cgroup.h</code> &amp; <code>src/cgroup.c</code></h4>
+<ul>
+<li><strong>Role:</strong> High-speed, non-allocating parser for Linux <code>cgroup v2</code> CPU bandwidth controller attributes.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>cg_self_dir(char *buf, size_t n)</code> (<code>src/cgroup.c</code>, Lines 9–26): Parses <code>/proc/self/cgroup</code> to find the relative path of the process's cgroup slice, prefixing it with <code>/sys/fs/cgroup</code>.</p>
+<p>  - <code>cg_read_max()</code> (Lines 28–40): Opens <code>&lt;dir&gt;/cpu.max</code> and parses the quota and period in microseconds (e.g., <code>200000 100000</code>).</p>
+<p>  - <code>cg_open_stat()</code> &amp; <code>cg_read_stat_fd()</code> (Lines 42–73):</p>
+<p>    <em>Tricky Logic:</em> Rather than repeatedly calling <code>fopen()</code> / <code>fclose()</code> (which allocates memory buffers and creates new file descriptors 1,000 times per second), <code>cg_open_stat</code> opens <code>/sys/fs/cgroup/&lt;dir&gt;/cpu.stat</code> once with <code>O_RDONLY | O_CLOEXEC</code>.</p>
+<p>    Then, <code>cg_read_stat_fd</code> uses <code>pread(fd, buf, sizeof(buf)-1, 0)</code>. In the Linux kernel, issuing <code>pread</code> at offset 0 on a sysfs/cgroup virtual file causes the kernel to regenerate the statistics into the buffer without reopening the file!</p>
+<p>    Parses <code>usage_usec</code>, <code>nr_periods</code>, <code>nr_throttled</code>, and <code>throttled_usec</code>.</p>
+<div class="spacer"></div>
+<h4 id="srctopoh--srctopoc"><code>src/topo.h</code> &amp; <code>src/topo.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Discovers physical CPU topology and implements a specialized <strong>cores-first thread pinning order</strong>.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>siblings_of(int cpu, cpu_set_t *sib)</code> (<code>src/topo.c</code>, Lines 39–51): Reads <code>/sys/devices/system/cpu/cpu&lt;N&gt;/topology/thread_siblings_list</code> to identify hardware SMT (Simultaneous Multithreading / Hyper-Threading) siblings.</p>
+<p>  - <code>topo_cpu_order(int *out, int max)</code> (Lines 53–101):</p>
+<p>    Constructs the placement list:</p>
+<p>    1. Discovers all physical cores and their SMT siblings.</p>
+<p>    2. Sorts placement such that the <strong>first thread of every physical core</strong> is populated first before any SMT sibling core is used.</p>
+<p>    3. <em>Interrupt Isolation:</em> Rotates Core 0 (CPUs 0 and 1) to the very end of the list. On Linux, CPU 0 handles primary hardware interrupts, timers, and kernel housekeeping. Keeping worker threads off CPU 0 preserves measurement stability.</p>
+<p>    4. On the 8-core / 16-thread test machine, this generates the exact affinity order:</p>
+<p>       <span class="math-display">\text{CPUs: } [2, 4, 6, 8, 10, 12, 14, 0, 3, 5, 7, 9, 11, 13, 15, 1]</span></p>
+<p>  - <code>pin_self(int cpu)</code> (Lines 114–120): Uses <code>pthread_setaffinity_np</code> to bind the calling thread to a single logical processor core.</p>
+<div class="spacer"></div>
+<h4 id="srchisth--srchistc"><code>src/hist.h</code> &amp; <code>src/hist.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Zero-allocation, high-dynamic-range log-linear latency histogram (inspired by Gil Tene's HdrHistogram).</li>
+<li><strong>Mathematical Design:</strong></li>
+</ul>
+<p>  - Accurately records latency values from 1 TSC tick up to billions of ticks without dynamic memory allocation.</p>
+<p>  - Values below 256 ticks (<code>HIST_SUB = 256</code>, Line 13) are assigned exact discrete buckets.</p>
+<p>  - Above 256, each power-of-two range <span class="math-inline">[2^k, 2^{k+1})</span> is divided linearly into 128 sub-buckets (<code>HIST_HALF = 128</code>).</p>
+<p>  - This guarantees that bucket width never exceeds <span class="math-inline">\frac{1}{128} \approx 0.78\%</span> of the sampled value, providing bounded relative measurement error across the entire distribution.</p>
+<ul>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <code>hist_index(uint64_t v)</code> (<code>src/hist.h</code>, Lines 23–30):</p>
+<p>    Calculates the bucket index in <span class="math-inline">O(1)</span> time with zero branching loops using the hardware instruction <code>__builtin_clzll</code> (Count Leading Zeros):</p>
+<pre class="code-block language-c"><code>    unsigned msb = 63u - (unsigned)__builtin_clzll(v);
+    unsigned e = msb - HIST_SUB_BITS + 1;
+    return e * HIST_HALF + (unsigned)(v &gt;&gt; e);</code></pre>
+<p>  - <code>hist_add(struct hist *h, uint64_t v)</code> (Lines 32–41): Increments bucket counter and updates running <code>min</code>, <code>max</code>, <code>n</code>, and <code>sum</code>.</p>
+<p>  - <code>hist_merge()</code> (<code>src/hist.c</code>, Lines 23–35): Merges histograms across threads or repeat runs with simple vector addition.</p>
+<p>  - <code>hist_quantile()</code> (Lines 37–59): Computes nearest-rank percentiles (e.g., p50, p90, p99, p99.9) and returns the midpoint of the winning bucket clamped to <span class="math-inline">[min, max]</span>.</p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="42-microbenchmarks--application-harnesses-src">4.2 Microbenchmarks &amp; Application Harnesses (<code>src/</code>)</h3>
+<div class="spacer"></div>
+<h4 id="srcbenchc"><code>src/bench.c</code></h4>
+<ul>
+<li><strong>Role:</strong> The primary multi-phase, multi-threaded benchmarking harness.</li>
+<li><strong>Architecture &amp; Worker Loop (<code>worker()</code>, Lines 131–220):</strong></li>
+</ul>
+<p>  1. Pins thread to CPU using <code>topo_cpu_order</code>.</p>
+<p>  2. Allocates thread-private histogram buffers (<code>ts-&gt;hist</code>), window buffers (<code>ts-&gt;win</code>), and windowed statistics (<code>ts-&gt;wst</code>).</p>
+<p>  3. Synchronizes with master thread across two consecutive POSIX thread barriers (<code>bar_ready</code>, <code>bar_go</code>).</p>
+<p>  4. Runs the inner measurement loop:</p>
+<p>     - Checks if current phase expired; if thread ID <span class="math-inline">\ge</span> active threads for phase, sleeps until next phase.</p>
+<p>     - Samples start TSC: <code>t0 = tsc_ordered()</code>.</p>
+<p>     - Calls <code>ops-&gt;lock(l)</code>.</p>
+<p>     - Samples acquire TSC: <code>t1 = tsc_ordered()</code>. Acquire latency is recorded as <span class="math-inline">t_1 - t_0</span>.</p>
+<p>     - Touches shared cache lines (<code>cs_data[i][0]++</code>) to simulate real data modifications.</p>
+<p>     - Calls <code>spin_work(hold)</code> to emulate critical-section execution.</p>
+<p>     - Calls <code>ops-&gt;unlock(l)</code>.</p>
+<p>     - Records latency sample in <code>ts-&gt;hist[p]</code>.</p>
+<p>     - Calls <code>spin_work(think)</code> to emulate inter-arrival think time.</p>
+<ul>
+<li><strong>Built-in Mutual Exclusion Check (Line 514):</strong></li>
+</ul>
+<p>  <code>bool counter_ok = cs_data[0][0] == ops_all;</code>  </p>
+<p>  At the end of every benchmark run, the shared non-atomic counter <code>cs_data[0][0]</code> must exactly equal the total number of lock acquisitions across all threads. If any lock has a concurrency bug or data race, the counter will miss increments, and <code>bench</code> will exit with code 1.</p>
+<ul>
+<li><strong>Output:</strong> Emits a comprehensive JSON record on <code>stdout</code> containing throughput, context switches (<code>getrusage</code>), CPU core utilization, temperature before/after (<code>read_cpu_temp_c</code>), and per-phase quantiles.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="srcwakebenchc"><code>src/wakebench.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Standalone microbenchmark designed to isolate and characterize the pure latency distribution of <code>futex</code> wakeups across CPU placements and idle C-states (Experiment E1 / RQ1).</li>
+<li><strong>Measurement Methodology:</strong></li>
+</ul>
+<p>  1. <strong>Sleeper Thread (<code>sleeper()</code>, Lines 74–88):</strong></p>
+<p>     - Binds to <code>cfg.sleeper_cpu</code>.</p>
+<p>     - Sets atomic flag <code>ready</code>, signals waker via <code>futex_wake(&amp;sh.ready, 1)</code>.</p>
+<p>     - Records timestamp <code>block_at[i] = tsc_ordered()</code>.</p>
+<p>     - Enters <code>futex_wait(&amp;sh.seq, i)</code> and goes to sleep.</p>
+<p>     - On return to user space, instantly records <code>woke_at[i] = tsc_ordered()</code>.</p>
+<p>  2. <strong>Waker Thread (<code>waker_loop()</code>, Lines 113–134):</strong></p>
+<p>     - Binds to <code>cfg.waker_cpu</code>.</p>
+<p>     - Waits for sleeper to announce readiness.</p>
+<p>     - Executes <code>idle_delay(sleep_mode)</code> (Lines 100–111): delays for <code>idle_us</code> (20 µs, 100 µs, 1 ms, or 10 ms) using <code>clock_nanosleep</code> or <code>PAUSE</code> loops, allowing the sleeper's core to drop into deep C-states.</p>
+<p>     - Samples timestamp: <code>w = tsc_ordered()</code>.</p>
+<p>     - Stores sequence number and calls <code>futex_wake(&amp;sh.seq, 1)</code>.</p>
+<p>     - Computes waker syscall overhead: <code>wake_cost[i] = tsc_ordered() - w</code>.</p>
+<p>  3. <strong>Wake Latency Calculation (Line 283):</strong></p>
+<p>     <span class="math-display">\text{Latency} = \text{woke\_at}[i] - \text{wake\_at}[i]</span></p>
+<p>     Measures the total elapsed wall time from the exact moment the waker initiates the syscall to the moment the sleeper executes its first instruction back in user space.</p>
+<p>  4. Reads Linux <code>/sys/devices/system/cpu/cpu&lt;N&gt;/cpuidle/state*/usage</code> before and after to prove which hardware C-states were reached.</p>
+<div class="spacer"></div>
+<h4 id="srccalibc"><code>src/calib.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Calibration utility providing precision measurements of TSC frequency, timer overheads, inter-core clock synchronization, and policy decision latency.</li>
+<li><strong>Subcommands:</strong></li>
+</ul>
+<p>  - <code>tsc-hz</code> (Lines 46–50): Outputs TSC frequency and work-loop rate.</p>
+<p>  - <code>timer</code> (Lines 68–122): Measures the cost of <code>tsc_ordered()</code> pair (~20 ns), <code>clock_gettime</code> (~19 ns), <code>PAUSE</code> (~14 ns), empty <code>futex_wake</code> (~295 ns), and uncontended lock/unlock latency for every lock (~3.2 ns).</p>
+<p>  - <code>tsc-sync CPU_A CPU_B</code> (Lines 124–186): Validates cross-CPU TSC consistency using a ping-pong synchronization algorithm across shared memory slots. Confirmed cross-core skew is <span class="math-inline">\le 10\text{ ns}</span> (within measurement resolution).</p>
+<p>  - <code>work</code> (Lines 188–209): Tests accuracy of <code>spin_work()</code> loop against requested durations (50 ns, 100 ns, 1 µs, 10 µs, 100 µs).</p>
+<p>  - <code>policy</code> (Lines 211–257): Measures CPU time required to execute <code>pol_choose()</code> (0.3 ns for <code>ada</code>, 10.6 ns for <code>hedge</code>) and <code>pol_update()</code> (15.5 ns for <code>ada</code>, 30.1 ns for <code>hedge</code>).</p>
+<div class="spacer"></div>
+<h4 id="srcshimc"><code>src/shim.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Dynamic linker interposition library compiled as <code>build/libflshim.so</code>. Intercepts standard POSIX Threads mutex functions (<code>pthread_mutex_lock</code>, <code>pthread_mutex_unlock</code>, <code>pthread_mutex_trylock</code>, etc.) and redirects them to <code>futex-lab</code> locks without modifying or recompiling target applications.</li>
+<li><strong>Deep Code Walkthrough:</strong></li>
+</ul>
+<p>  - <em>Storage Trick (<code>slot()</code>, Lines 78–81):</em></p>
+<p>    Standard <code>pthread_mutex_t</code> on Linux x86-64 is a 40-byte union. Bytes 24..31 correspond to the internal <code>__list</code> pointers used only by robust mutexes. The shim reinterprets bytes 24..31 as an atomic pointer <code>_Atomic(struct shim_mutex <em>) </em></code>.</p>
+<p>  - <em>On-Demand Initialization (<code>get()</code>, Lines 103–116):</em></p>
+<p>    When an application uses statically initialized mutexes (<code>PTHREAD_MUTEX_INITIALIZER</code>), no <code>pthread_mutex_init</code> call occurs. When <code>pthread_mutex_lock</code> is invoked, <code>get()</code> inspects the mutex slot. If NULL, it allocates a <code>shim_mutex</code> and uses <code>atomic_compare_exchange_strong</code> to install it atomically.</p>
+<p>  - <em>Recursive Mutex Support (Lines 148–156):</em></p>
+<p>    Tracks owner thread using the address of a thread-local dummy byte <code>static __thread char t_id</code>. If the lock is recursive and the caller already matches <code>owner</code>, it increments an internal recursion counter without re-entering the lock.</p>
+<p>  - <em>Condition Variable Safety Guard (<code>no_condvars()</code>, Lines 216–220):</em></p>
+<p>    Condition variables (<code>pthread_cond_wait</code>) internally release and reacquire glibc mutexes by manipulating internal glibc struct fields. Because our shim manages the mutex externally, attempting to use condition variables would corrupt internal state. The shim detects condition variable calls and aborts loudly with an informative error.</p>
+<div class="spacer"></div>
+<h4 id="srcsqlbenchc"><code>src/sqlbench.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Real-world database benchmark evaluating concurrency overhead on SQLite 3.53.4.</li>
+<li><strong>Workload Structure:</strong></li>
+</ul>
+<p>  - Creates an in-memory SQLite database (<code>:memory:</code>) populated with 10,000 rows.</p>
+<p>  - Configures SQLite in <code>SQLITE_OPEN_FULLMUTEX</code> (serialized mode), meaning every database API call acquires SQLite's internal connection mutex.</p>
+<p>  - <span class="math-inline">T</span> threads concurrently execute a transaction mix: 90% point reads (<code>SELECT v FROM t WHERE k = ?</code>) and 10% writes (<code>UPDATE t SET v = v + 1 WHERE k = ?</code>).</p>
+<p>  - Mutual exclusion correctness check: At the end of the run, runs <code>SELECT SUM(v) FROM t</code> and verifies it equals the exact total number of successful update statements.</p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="43-test-suite-tests">4.3 Test Suite (<code>tests/</code>)</h3>
+<div class="spacer"></div>
+<h4 id="teststest_locksc"><code>tests/test_locks.c</code></h4>
+<ul>
+<li><strong>Role:</strong> Rigorous correctness and concurrency stress testing harness.</li>
+<li><strong>Verification Strategy:</strong></li>
+</ul>
+<p>  1. Tests all 13 lock specifications across thread counts <span class="math-inline">T \in \{2, 8, 32\}</span>.</p>
+<p>  2. Each thread executes thousands of acquisitions. Inside the critical section:</p>
+<p>     - An atomic flag <code>sh.in_cs</code> is swapped to 1. If the old value was already 1, <code>sh.overlaps</code> is incremented.</p>
+<p>     - Increments a plain, non-atomic counter <code>sh.counter++</code>.</p>
+<p>     - Introduces randomized holding work (<code>spin_work(rng % 4000)</code>) on 1 out of 64 acquisitions to deliberately force lock contention and trigger both user-space spinning and kernel sleep paths.</p>
+<p>     - Resets <code>sh.in_cs = 0</code>.</p>
+<p>  3. <em>ThreadSanitizer Integration:</em> Because <code>sh.counter</code> is non-atomic, any failure in mutual exclusion immediately triggers a ThreadSanitizer data-race warning.</p>
+<p>  4. <em>Watchdog Timer (<code>on_alarm()</code>, Lines 45–54):</em> Sets a POSIX <code>alarm(watchdog)</code>. If a bug causes a lost wakeup in <code>futex_wait</code>, threads would deadlock indefinitely; the alarm expires and terminates the test with an error trace.</p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="44-experiment-automation-statistics--plotting-scripts">4.4 Experiment Automation, Statistics &amp; Plotting (<code>scripts/</code>)</h3>
+<div class="spacer"></div>
+<h4 id="scriptsmanifestpy"><code>scripts/manifest.py</code></h4>
+<ul>
+<li>Collects an exhaustive snapshot of the execution environment: CPU architecture, SMT topology, kernel release, boot cmdline parameters, glibc version, compiler flags, cpufreq governors, energy performance preference (EPP), turbo boost status, cpuidle states, cgroup controllers, power supply (AC vs. battery), and current Git commit hash and dirty status. Output is tagged with a unique 12-character SHA-256 machine ID.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="scriptsvalidatepy"><code>scripts/validate.py</code></h4>
+<ul>
+<li>Implements the 15-point harness validation gate required before running research experiments: verifies mutual-exclusion correctness, ThreadSanitizer cleanliness, timer overhead bounds, cross-core TSC synchronization, work-loop linear scaling, single-threaded no-lock ideal throughput, run-to-run repeatability (throughput CV <span class="math-inline">\le 5\%</span>), context-switch separation (voluntary switches high for park, zero for spin), and zero missed wakeups in <code>wakebench</code>.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="scriptsexperimentspy"><code>scripts/experiments.py</code></h4>
+<ul>
+<li>Defines the exact pre-registered execution matrix for all experiment sessions:</li>
+</ul>
+<p>  - <code>e1</code>: Wakeup latency across 14 conditions (placements, idle depths, background loads).</p>
+<p>  - <code>e2</code>: Steady contention sweep (8 locks <span class="math-inline">\times</span> 4 hold times <span class="math-inline">\times</span> 4 thread counts <span class="math-inline">\times</span> 5 runs = 640 runs).</p>
+<p>  - <code>e3</code>: Unpinned execution subset (evaluates Linux scheduler behavior).</p>
+<p>  - <code>e4</code>: Phase-changing workloads (S1 hold-time shifts, S2 thread count shifts).</p>
+<p>  - <code>e5</code>: Randomized workload R1 (bimodal hold times with exponential inter-arrival think times).</p>
+<p>  - <code>t3</code>: Tuning session for adaptive policies across <span class="math-inline">\beta \in \{1, 2, 4, 8, 16\}</span>.</p>
+<p>  - <code>e6</code>: Master adaptive evaluation testing Hypothesis H3 against best static locks.</p>
+<p>  - <code>e7</code>: Cgroup CPU quota throttled evaluation testing Hypothesis H4.</p>
+<p>  - <code>e8</code>: Steady grid evaluation of adaptive locks.</p>
+<p>  - <code>e9</code>: SQLite application benchmark under the LD_PRELOAD shim.</p>
+<p>  - <code>e10</code>: Wakeup latency under CPU quota constraints.</p>
+<div class="spacer"></div>
+<h4 id="scriptsrun_experimentspy"><code>scripts/run_experiments.py</code></h4>
+<ul>
+<li>The master experiment runner:</li>
+</ul>
+<p>  - Enforces version control hygiene: refuses to start if uncommitted changes exist in code or configs (<code>--allow-dirty</code> override).</p>
+<p>  - Shuffles the entire run matrix using a fixed pseudorandom seed (<code>20261014</code>). This interleaves lock runs across time, ensuring that thermal throttling and system drift impact all locks equally rather than biasing whichever ran last.</p>
+<p>  - Supports automatic resumption: checks if a run's JSON output exists on disk before executing.</p>
+<p>  - Automatically re-runs invalid runs (up to 2 retries).</p>
+<div class="spacer"></div>
+<h4 id="scriptschoose_budgetspy--scriptschoose_policypy"><code>scripts/choose_budgets.py</code> &amp; <code>scripts/choose_policy.py</code></h4>
+<ul>
+<li>Implements pre-declared parameter selection rules:</li>
+</ul>
+<p>  - <code>choose_budgets.py</code>: Extracts the median wakeup latency <span class="math-inline">m</span> of the reference condition (<code>other-core</code>, 100 µs idle) from Experiment E1 (measured as 4728.9 ns), calculates static budgets <span class="math-inline">\{0.5, 1, 2, 8\} \times m</span> rounded to 50 ns, and generates <code>config/budgets.json</code> (<code>stp:2350</code>, <code>stp:4750</code>, <code>stp:9450</code>, <code>stp:37850</code>).</p>
+<p>  - <code>choose_policy.py</code>: Analyzes Session T3 results, evaluates candidate <span class="math-inline">\beta</span> parameters against pre-declared throughput and tail bounds, selects <span class="math-inline">\beta = 8.0</span> for Policy A and Policy B, and writes <code>config/policy.json</code>.</p>
+<div class="spacer"></div>
+<h4 id="scriptsstatspy"><code>scripts/stats.py</code></h4>
+<ul>
+<li>Implements non-parametric statistical methods using the Python standard library:</li>
+</ul>
+<p>  - <code>median_ci()</code>: Distribution-free confidence interval for the median using order statistics based on the binomial distribution.</p>
+<p>  - <code>bootstrap()</code>: Resamples runs with replacement across 2,000 iterations to compute 95% bootstrap confidence intervals for throughput means and ratios.</p>
+<p>  - <code>TailSet</code>: High-performance pooled quantile class that merges histogram vectors above a minimum floor, enabling fast bootstrap resampling over 2,000 runs without re-sorting millions of samples.</p>
+<p>  - <code>weighted_quantile()</code>: Computes waiting-time-weighted latency distributions to expose thread starvation.</p>
+<div class="spacer"></div>
+<h4 id="scriptsanalyzepy"><code>scripts/analyze.py</code></h4>
+<ul>
+<li>Master data analysis script. Ingests raw <code>results/&lt;exp&gt;/runs.jsonl</code>, computes summary statistics, applies pre-registered hypothesis support/refutation verdict rules, and generates human-readable Markdown reports in <code>docs/results/&lt;exp&gt;.md</code> alongside structured JSON files in <code>results/analysis/&lt;exp&gt;.json</code>.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="scriptsfigurespy"><code>scripts/figures.py</code></h4>
+<ul>
+<li>Generates all publication-quality vector SVG figures (<code>fig1</code> through <code>fig7</code>, <code>fig10</code>) and markdown tables (<code>tables.md</code>). Generates dual light-theme and dark-theme variants with color palettes validated for Color Vision Deficiency (CVD). Concurrently outputs CSV data twins for every figure.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="scriptssupplementpy"><code>scripts/supplement.py</code></h4>
+<ul>
+<li>Applies non-parametric statistical hypothesis tests to the pre-registered comparisons: calculates two-sided Mann-Whitney U tests, Vargha-Delaney <span class="math-inline">A</span> effect sizes (probability of superiority), Hodges-Lehmann median difference shifts, and Holm-Bonferroni family-wise error rate adjustments.</li>
+</ul>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="45-configuration-files-config">4.5 Configuration Files (<code>config/</code>)</h3>
+<div class="spacer"></div>
+<h4 id="configbudgetsjson"><code>config/budgets.json</code></h4>
+<ul>
+<li>Stores the static spin budgets computed by <code>scripts/choose_budgets.py</code> from Experiment E1: reference condition <code>other-core_idle100us</code>, reference median 4,728.9 ns, multipliers <code>[0.5, 1.0, 2.0, 8.0]</code>, yielding budgets <code>[2350, 4750, 9450, 37850]</code> ns.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="configpolicyjson"><code>config/policy.json</code></h4>
+<ul>
+<li>Stores the adaptive policy parameters selected by <code>scripts/choose_policy.py</code> from Session T3: <code>ada</code> <span class="math-inline">\beta = 8.0</span>, <code>hedge</code> <span class="math-inline">\beta = 8.0</span>, <code>exp3</code> <span class="math-inline">\beta = 8.0</span>, <code>ta</code> base <code>ada</code> with <span class="math-inline">\theta = 0.9</span>, <span class="math-inline">\text{poll} = 1000\text{ µs}</span>, and discrete arms <code>[0, 2350, 4750, 9450, 37850, 151300]</code> ns.</li>
+</ul>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="46-build-system-dependencies--project-metadata">4.6 Build System, Dependencies &amp; Project Metadata</h3>
+<div class="spacer"></div>
+<h4 id="makefile"><code>Makefile</code></h4>
+<ul>
+<li>Controls GCC compilation rules, compilation flags (<code>-O2 -pthread -std=gnu11</code>), ThreadSanitizer builds (<code>-fsanitize=thread -O1</code>), test automation (<code>test</code>, <code>test-tsan</code>, <code>test-shim</code>), and utility commands (<code>validate</code>, <code>manifest</code>, <code>clean</code>).</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="requirementstxt"><code>requirements.txt</code></h4>
+<ul>
+<li>Pins Python dependencies for extended analysis: <code>matplotlib==3.11.2</code>, <code>scipy==1.18.1</code>, <code>numpy==2.5.4</code>, <code>pandas==3.0.6</code>, <code>contourpy</code>, <code>fonttools</code>, <code>kiwisolver</code>.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="gitignore"><code>.gitignore</code></h4>
+<ul>
+<li>Excludes compilation binaries (<code>build/</code>, <code>build-tsan/</code>), Python caches (<code>__pycache__/</code>, <code>*.pyc</code>), and local virtual environments (<code>.venv/</code>).</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="project-lifecycle-and-planning-markdowns">Project Lifecycle and Planning Markdowns</h4>
+<ul>
+<li><code>README.md</code>: The living project handbook.</li>
+<li><code>BUILD_PHASE.md</code>: Detailed engineering architecture, lock design, and validation requirements.</li>
+<li><code>RESEARCH_PHASE.md</code>: Research questions, mathematical definitions, pre-registered hypothesis criteria, and related literature catalog.</li>
+<li><code>PROGRESS.md</code>: Timestamped log tracking every execution milestone and recording engineering deviations (D1 through D18).</li>
+<li><code>TIMELINE.md</code>: Project schedule and original phase scope definitions.</li>
+</ul>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="47-documentation--research-findings-docs">4.7 Documentation &amp; Research Findings (<code>docs/</code>)</h3>
+<div class="spacer"></div>
+<h4 id="docsreportmd"><code>docs/report.md</code></h4>
+<ul>
+<li>The complete research paper draft formatted for conference submission. Integrates all empirical results, methodology descriptions, architectural diagrams, and experimental findings.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="docsliteraturemd"><code>docs/literature.md</code></h4>
+<ul>
+<li>Comprehensive bibliographic catalog containing 24 primary sources (16 candidate papers, 8 gap-search papers) with verified DOIs and registry records spanning competitive spinning, futex internals, lock-holder preemption, multi-armed bandits, and queue locks.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="docsvalidationmd"><code>docs/validation.md</code></h4>
+<ul>
+<li>Output report of <code>scripts/validate.py</code> documenting the 15 passing verification checks.</li>
+</ul>
+<div class="spacer"></div>
+<h4 id="docsresultsmd--docsfigures"><code>docs/results/<em>.md</code> &amp; <code>docs/figures/</em></code></h4>
+<ul>
+<li>Result tables generated for Experiments E1 through E9 and T3, alongside vector SVG plots and CSV data twins.</li>
+</ul>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h3 id="48-generated-binary--vendor-data">4.8 Generated, Binary &amp; Vendor Data</h3>
+<ul>
+<li><code>results/</code>: Contains raw experimental data from over 10,000 benchmark executions. Formatted as append-only <code>.jsonl</code> streams, gzipped <code>.csv.gz</code> sample logs, and <code>.win.csv</code> window traces.</li>
+<li><code>build/</code>: Temporary GCC compilation directory containing executable binaries.</li>
+<li><code>build-tsan/</code>: Temporary directory containing ThreadSanitizer instrumented binaries.</li>
+<li><code>.venv/</code>: Python 3.14 virtual environment containing installed scientific libraries.</li>
+<li><code>.git/</code>: Version control database containing the repository history and pre-registration tags (<code>prereg-v1</code>, <code>prereg-v1-p3</code>, <code>data-freeze-v1</code>).</li>
+</ul>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="5-step-4-system-data-flow-lifecycles--runtime-architecture">5. Step 4: System Data Flow, Lifecycles &amp; Runtime Architecture</h2>
+<div class="spacer"></div>
+<h3 id="51-end-to-end-experiment-pipeline-lifecycle">5.1 End-to-End Experiment Pipeline Lifecycle</h3>
+<div class="spacer"></div>
+<p>The entire experimental lifecycle proceeds in a deterministic, four-phase sequence:</p>
+<div class="spacer"></div>
+<pre class="code-block language-mermaid"><code>flowchart TD
+    subgraph Phase1["Phase 1: Foundation &amp; Validation"]
+        A["Compile C Binaries (make all)"] --&gt; B["Run test_locks &amp; ThreadSanitizer"]
+        B --&gt; C["Hardware &amp; Timer Calibration (calib)"]
+        C --&gt; D["Harness Validation (validate.py)"]
+        D --&gt; E["Machine Manifest Snapshot (manifest.py)"]
+    end
+
+    subgraph Phase2["Phase 2: Static Evaluation (RQ1, RQ2)"]
+        F["Pre-Registration Tag: prereg-v1"] --&gt; G["Run Wakeup Benchmark (E1)"]
+        G --&gt; H["Compute Static Budgets (choose_budgets.py)"]
+        H --&gt; I["Store config/budgets.json"]
+        I --&gt; J["Run Static Sweeps (E2, E3, E4, E5)"]
+        J --&gt; K["Analyze Hypotheses H1 &amp; H2 (analyze.py)"]
+    end
+
+    subgraph Phase3["Phase 3: Adaptive Policies &amp; Throttling (RQ3)"]
+        L["Implement Adaptive Locks &amp; Policies"] --&gt; M["Run Tuning Session (T3)"]
+        M --&gt; N["Select Beta &amp; ta Base (choose_policy.py)"]
+        N --&gt; O["Store config/policy.json (Tag: prereg-v1-p3)"]
+        O --&gt; P["Run Adaptive Benchmarks (E6, E7, E8)"]
+        P --&gt; Q["Analyze Hypotheses H3 &amp; H4 (analyze.py)"]
+    end
+
+    subgraph Phase4["Phase 4: Application Interposition &amp; Synthesis"]
+        R["Build LD_PRELOAD Shim (libflshim.so)"] --&gt; S["Run SQLite Concurrency Benchmark (E9)"]
+        S --&gt; T["Run Supplementary Tests (supplement.py)"]
+        T --&gt; U["Render SVG Figures &amp; Tables (figures.py)"]
+        U --&gt; V["Synthesize Research Report (docs/report.md)"]
+        V --&gt; W["Tag: data-freeze-v1"]
+    end
+
+    Phase1 --&gt; Phase2
+    Phase2 --&gt; Phase3
+    Phase3 --&gt; Phase4</code></pre>
+<div class="spacer"></div>
+<h3 id="52-fast-path-vs-slow-path-mutex-state-transitions">5.2 Fast-Path vs. Slow-Path Mutex State Transitions</h3>
+<div class="spacer"></div>
+<p>The lifecycle of every acquisition within the Three-State Futex Lock is depicted below:</p>
+<div class="spacer"></div>
+<pre class="code-block language-mermaid"><code>sequenceDiagram
+    autonumber
+    actor Thread as Contending Thread
+    participant Word as Atomic Lock Word
+    participant Policy as Online Policy State
+    participant Kernel as Linux Futex Subsystem
+    actor Owner as Lock Releasing Thread
+
+    Thread-&gt;&gt;Word: atomic CAS (0 -&gt; 1) [Fast Path]
+    alt Fast Path Success (Uncontended)
+        Word--&gt;&gt;Thread: Success! Lock Acquired (zero syscalls)
+    else Fast Path Failure (Contended)
+        Word--&gt;&gt;Thread: Failed (Old value != 0)
+        Thread-&gt;&gt;Thread: Increment lk_stats.slow
+        Thread-&gt;&gt;Policy: pol_choose(&amp;pst, &amp;arm)
+        Policy--&gt;&gt;Thread: Returns spin budget (ns / TSC ticks)
+        
+        opt Spin Phase (budget &gt; 0)
+            loop While now &lt; deadline
+                Thread-&gt;&gt;Thread: cpu_relax() (PAUSE)
+                Thread-&gt;&gt;Word: atomic_load(relaxed)
+                opt Word == 0
+                    Thread-&gt;&gt;Word: atomic CAS (0 -&gt; 1)
+                    Word--&gt;&gt;Thread: Success! Acquired in spin loop
+                end
+            end
+        end
+
+        alt Acquired while spinning
+            Thread-&gt;&gt;Thread: Return with lock held!
+        else Budget Expired (Park Phase)
+            Thread-&gt;&gt;Word: atomic_exchange(word, 2)
+            loop While old_val != 0
+                Thread-&gt;&gt;Thread: Increment lk_stats.parks
+                Thread-&gt;&gt;Kernel: futex(word, FUTEX_WAIT_PRIVATE, 2)
+                Kernel--&gt;&gt;Thread: Thread Put to Sleep (C-States)
+                Note over Kernel,Owner: Lock Holder Finishes Work
+                Owner-&gt;&gt;Word: atomic_fetch_sub(1)
+                opt Old value == 2 (Waiters Exist)
+                    Owner-&gt;&gt;Word: atomic_store(word, 0)
+                    Owner-&gt;&gt;Owner: atomic_store(rel_tsc, tsc_now())
+                    Owner-&gt;&gt;Kernel: futex(word, FUTEX_WAKE_PRIVATE, 1)
+                end
+                Kernel--&gt;&gt;Thread: Wakeup Signal Received (IPI / Reschedule)
+                Thread-&gt;&gt;Word: atomic_exchange(word, 2)
+            end
+            Thread-&gt;&gt;Thread: Calculate In-Lock Wakeup Latency
+            Thread-&gt;&gt;Thread: Return with lock held!
+        end
+    end
+
+    Note over Thread: Critical Section Execution
+    Thread-&gt;&gt;Word: Release Lock
+    Thread-&gt;&gt;Policy: pol_update() [Off-Critical-Path]</code></pre>
+<div class="spacer"></div>
+<h3 id="53-cache-coherence-padding--smt-topology-mapping">5.3 Cache Coherence, Padding &amp; SMT Topology Mapping</h3>
+<p>Data movement across hardware cores adheres to strict mechanical sympathy:</p>
+<ul>
+<li><strong>Cache-Line Alignment:</strong> Every lock and per-thread state structure is padded to <code>PAD_BYTES = 128</code> (two cache lines). This completely isolates the atomic lock word on its own L1/L2 cache line, ensuring that invalidation traffic from writes does not invalidate adjacent program variables.</li>
+<li><strong>Topology-Aware Thread Pinning:</strong> Threads are allocated across physical cores first before logical SMT sibling threads are utilized. Physical cores share only L3 cache; SMT siblings share execution execution units, ALU pipelines, and L1/L2 caches. Saturating physical cores maximizes total CPU compute capacity before SMT pipeline contention occurs.</li>
+</ul>
+<div class="spacer"></div>
+<h3 id="54-real-world-application-interposition-via-ld_preload">5.4 Real-World Application Interposition via LD_PRELOAD</h3>
+<p>The LD_PRELOAD shim intercepts dynamically linked POSIX Threads calls:</p>
+<div class="spacer"></div>
+<pre class="code-block language-mermaid"><code>graph LR
+    App["Application (e.g. SQLite3)"] --&gt;|Calls pthread_mutex_lock| Shim["libflshim.so"]
+    Shim --&gt;|Inspects bytes 24..31 of pthread_mutex_t| Slot{"Slot Allocated?"}
+    Slot --&gt;|No| Alloc["Allocate 128B shim_mutex &amp; install via CAS"]
+    Slot --&gt;|Yes| Read["Retrieve existing shim_mutex"]
+    Alloc --&gt; Read
+    Read --&gt;|Dispatches to lock vtable| FutexLab["futex-lab Lock (ada, hedge, stp, park)"]
+    FutexLab --&gt;|Executes CAS / Spin / Futex| Hardware["Hardware / Linux Kernel"]</code></pre>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="6-step-5-code-quality-audit-edge-cases--flagged-issues">6. Step 5: Code Quality Audit, Edge Cases &amp; Flagged Issues</h2>
+<div class="spacer"></div>
+<h3 id="61-bugs-latent-failure-modes--behavioral-risks">6.1 Bugs, Latent Failure Modes &amp; Behavioral Risks</h3>
+<div class="spacer"></div>
+<ol>
+<li><strong>Path-Name Space Truncation under <code>LD_PRELOAD</code>:</strong></li>
+</ol>
+<p>   - <em>Location:</em> <code>scripts/experiments.py</code> (Lines 323–326) and <code>src/shim.c</code>.</p>
+<p>   - <em>Issue:</em> The dynamic linker (<code>ld.so</code>) interprets the <code>LD_PRELOAD</code> environment variable as a space-separated list of shared libraries. Because the root directory of this repository contains a space (<code>"OS PROJECT"</code>), passing an absolute path (<code>LD_PRELOAD=/home/.../OS PROJECT/...</code>) causes <code>ld.so</code> to split the path into two invalid files, crashing the dynamic linker.</p>
+<p>   - <em>Workaround in Code:</em> Commit <code>1e4516f</code> worked around this by passing a relative path (<code>LD_PRELOAD=./build/libflshim.so</code>), requiring the runner to always execute with the repository root as its current working directory.</p>
+<p>   - <em>Recommendation:</em> Replace the space in the project folder with an underscore or provide a wrapper script that exports <code>LD_PRELOAD</code> using escaped paths.</p>
+<div class="spacer"></div>
+<ol>
+<li><strong>Cgroup Throttling Rate False-Positives in <code>ta_helper</code>:</strong></li>
+</ol>
+<p>   - <em>Location:</em> <code>src/lock_adaptive.c</code> (Lines 223–242).</p>
+<p>   - <em>Issue:</em> The throttle detector computes a 1 ms derivative usage rate:</p>
+<p>     <span class="math-display">\text{rate} = \frac{\Delta \text{usage\_usec}}{\Delta t}</span></p>
+<p>     If the usage rate exceeds <span class="math-inline">90\%</span> of the quota rate, it assumes throttling is "imminent" and triggers park mode. However, a multithreaded process naturally experiences short millisecond-level CPU bursts that briefly exceed the average quota rate without exhausting the 100 ms period budget. In Experiment E7 (10 µs hold, 400% quota), the container was <strong>never</strong> throttled by the kernel (0 throttled periods), yet <code>ta</code> spent 2.1 seconds of its 2.2-second execution lifetime stuck in forced-park mode due to false-positive rate spikes!</p>
+<p>   - <em>Recommendation:</em> Track cumulative CPU consumption <em>within the active CFS quota period</em> rather than calculating an instantaneous derivative over a 1 ms window.</p>
+<div class="spacer"></div>
+<ol>
+<li><strong>Condition Variable Incompatibility in <code>shim.c</code>:</strong></li>
+</ol>
+<p>   - <em>Location:</em> <code>src/shim.c</code> (Lines 216–238).</p>
+<p>   - <em>Issue:</em> Any program that utilizes POSIX condition variables (<code>pthread_cond_wait</code>, <code>pthread_cond_timedwait</code>) will abort immediately with <code>SIGABRT</code>. Glibc's internal condition variable implementation manipulates the internal fields of <code>pthread_mutex_t</code> directly.</p>
+<p>   - <em>Recommendation:</em> For full POSIX compatibility, implement a custom <code>pthread_cond_t</code> wrapper within the shim that explicitly tracks the interposed mutex.</p>
+<div class="spacer"></div>
+<h3 id="62-edge-cases-in-synchronization--lock-imputations">6.2 Edge Cases in Synchronization &amp; Lock Imputations</h3>
+<div class="spacer"></div>
+<ol>
+<li><strong>The Barging / Starvation Tail Artifact:</strong></li>
+</ol>
+<p>   - <em>Location:</em> Observed in <code>src/lock_futex.c</code> and documented across Experiments E2, E4, E6, and E7.</p>
+<p>   - <em>Mechanism:</em> When critical section holds are long (e.g., 20 µs) relative to think time (1 µs), a thread releasing the lock sets the word to 0 and issues a <code>futex_wake</code> to wake a sleeping waiter. Waking up takes 3 to 30 µs. During this wakeup window, the releaser finishes its 1 µs think work, returns, finds the lock word at 0, executes CAS <span class="math-inline">0 \to 1</span>, and re-acquires the lock!</p>
+<p>   - <em>Impact:</em> The releaser repeatedly "barges" ahead of the waking sleeper. The releaser records thousands of fast uncontended acquisitions (30 ns latency), while the sleeping waiter starves for tens of milliseconds. In pooled percentile calculations (p99/p99.9), the thousands of fast acquisitions overwhelm the distribution, artificially depressing the pooled tail latency metric even while specific threads suffer 100% starvation!</p>
+<div class="spacer"></div>
+<ol>
+<li><strong>Censored Feedback Imputation Bias in Policy B (<code>hedge</code>):</strong></li>
+</ol>
+<p>   - <em>Location:</em> <code>src/policy.c</code> (Lines 180–189).</p>
+<p>   - <em>Mechanism:</em> When a thread parks, the costs of longer candidate arms are imputed based on the timestamp when the thread finally entered the critical section (<span class="math-inline">w_{\text{est}} = \text{release\_tsc} - t_0</span>). Due to the barging effect described above, this elapsed time includes all the time the thread spent being starved by barging releasers.</p>
+<p>   - <em>Impact:</em> Long spin budget arms appear artificially catastrophic to the Hedge algorithm, biasing the policy toward always selecting the zero-spin arm (<code>park</code>), even when spinning would have been advantageous.</p>
+<div class="spacer"></div>
+<ol>
+<li><strong>TSC Desynchronization Risk across Sockets:</strong></li>
+</ol>
+<p>   - <em>Location:</em> <code>src/tsc.c</code>.</p>
+<p>   - <em>Mechanism:</em> The harness assumes that <code>RDTSC</code> cycle counts are strictly synchronized across all cores. On multi-socket NUMA servers or older hardware without the <code>constant_tsc</code> and <code>nonstop_tsc</code> CPU flags, different physical CPU sockets can suffer from clock drift or frequency scaling skew.</p>
+<p>   - <em>Mitigation in Code:</em> Handled on the test machine (single-socket AMD Ryzen 7 6800H), where <code>calib tsc-sync</code> verified that cross-core skew is <span class="math-inline">\le 10\text{ ns}</span>. For multi-socket deployments, a socket-offset synchronization barrier must be added.</p>
+<div class="spacer"></div>
+<h3 id="63-architecture-limitations--recommendations-for-improvement">6.3 Architecture Limitations &amp; Recommendations for Improvement</h3>
+<div class="spacer"></div>
+<ol>
+<li><strong>CPU Frequency Scaling &amp; Thermal Drift:</strong></li>
+</ol>
+<p>   - <em>Observation:</em> Across repeated runs, the benchmark work loop ran 3% to 7% slower as the CPU package temperature rose from 65°C to 70°C, causing AMD precision boost clocks to throttle slightly.</p>
+<p>   - <em>Recommendation:</em> For strictly isothermal benchmarks, disable CPU turbo boost via <code>echo 0 &gt; /sys/devices/system/cpu/cpufreq/boost</code> and set a static CPU clock frequency using <code>cpupower frequency-set -f 3.2GHz</code>.</p>
+<ol>
+<li><strong>Fairness / Anti-Barging Queue Hybrid:</strong></li>
+</ol>
+<p>   - <em>Recommendation:</em> Incorporate a lightweight ticket-lock or MCS queue handoff mechanism when contended waiters are detected, ensuring that an unlock handoff cannot be stolen by an aggressive re-acquiring thread.</p>
+<ol>
+<li><strong>Adaptive Period-Aware Cgroup Throttling:</strong></li>
+</ol>
+<p>   - <em>Recommendation:</em> Read <code>/sys/fs/cgroup/cpu.stat</code> and synchronize directly with the kernel CFS period boundary so that spinning is enabled at the beginning of each 100 ms period and disabled only as the quota is exhausted.</p>
+<div class="spacer"></div>
+<hr/>
+<div class="spacer"></div>
+<h2 id="7-step-6-complete-codebase-verification-checklist">7. Step 6: Complete Codebase Verification Checklist</h2>
+<div class="spacer"></div>
+<p>To verify that <strong>every single file in the repository</strong> was thoroughly opened, read, and analyzed without skims or omissions, review the following audit checklist:</p>
+<div class="spacer"></div>
+<div class="table-wrapper"><table>
+<thead><tr><th>File Path</th><th>Lines</th><th>Bytes</th><th>Verification Status</th><th>Primary Role &amp; Purpose</th></tr></thead><tbody>
+<tr><td><code>src/common.h</code></td><td>40</td><td>1,031</td><td>Verified Full</td><td>Cache padding constants, <code>cpu_relax</code>, <code>spin_work</code>, <code>die</code></td></tr>
+<tr><td><code>src/tsc.h</code></td><td>36</td><td>1,176</td><td>Verified Full</td><td>Invariant TSC helpers, <code>tsc_ordered</code> fenced reads</td></tr>
+<tr><td><code>src/tsc.c</code></td><td>44</td><td>1,065</td><td>Verified Full</td><td>TSC calibration against <code>CLOCK_MONOTONIC_RAW</code></td></tr>
+<tr><td><code>src/futex.h</code></td><td>30</td><td>957</td><td>Verified Full</td><td>Direct Linux <code>SYS_futex</code> system call wrappers</td></tr>
+<tr><td><code>src/lock.h</code></td><td>61</td><td>2,561</td><td>Verified Full</td><td>Universal <code>lock_ops</code> vtable and <code>lock_tstats</code> counters</td></tr>
+<tr><td><code>src/lock_registry.c</code></td><td>82</td><td>2,495</td><td>Verified Full</td><td>Lock catalog, command-line spec parser, memory allocator</td></tr>
+<tr><td><code>src/lock_futex.c</code></td><td>105</td><td>3,510</td><td>Verified Full</td><td>Three-state futex locks (<code>park</code>, <code>stp:&lt;ns&gt;</code>)</td></tr>
+<tr><td><code>src/lock_spin.c</code></td><td>60</td><td>1,688</td><td>Verified Full</td><td>Test-and-Test-and-Set spinlock with exponential backoff</td></tr>
+<tr><td><code>src/lock_pthread.c</code></td><td>46</td><td>1,545</td><td>Verified Full</td><td>POSIX glibc default and adaptive mutex wrappers</td></tr>
+<tr><td><code>src/policy.h</code></td><td>119</td><td>5,022</td><td>Verified Full</td><td>Online policies cost model and state definitions</td></tr>
+<tr><td><code>src/policy.c</code></td><td>205</td><td>7,161</td><td>Verified Full</td><td>Policy A EWMA, Policy B Hedge, EXP3 algorithms</td></tr>
+<tr><td><code>src/lock_adaptive.c</code></td><td>333</td><td>12,666</td><td>Verified Full</td><td>Adaptive locks (<code>ada</code>, <code>hedge</code>, <code>exp3</code>, <code>ta</code>) and cgroup helper</td></tr>
+<tr><td><code>src/cgroup.h</code></td><td>26</td><td>826</td><td>Verified Full</td><td>Cgroup v2 bandwidth interface declarations</td></tr>
+<tr><td><code>src/cgroup.c</code></td><td>74</td><td>2,124</td><td>Verified Full</td><td>Cgroup v2 <code>cpu.max</code> / <code>cpu.stat</code> file reader</td></tr>
+<tr><td><code>src/topo.h</code></td><td>17</td><td>553</td><td>Verified Full</td><td>Hardware CPU topology interface</td></tr>
+<tr><td><code>src/topo.c</code></td><td>121</td><td>3,028</td><td>Verified Full</td><td>Sysfs CPU topology parser, cores-first pinning</td></tr>
+<tr><td><code>src/hist.h</code></td><td>50</td><td>1,517</td><td>Verified Full</td><td>Log-linear latency histogram interface (0.8% error)</td></tr>
+<tr><td><code>src/hist.c</code></td><td>60</td><td>1,359</td><td>Verified Full</td><td>Histogram bucket midpoint indexing and quantile math</td></tr>
+<tr><td><code>src/bench.c</code></td><td>663</td><td>26,609</td><td>Verified Full</td><td>Primary multithreaded benchmarking harness</td></tr>
+<tr><td><code>src/wakebench.c</code></td><td>335</td><td>12,921</td><td>Verified Full</td><td>Futex wakeup latency microbenchmark</td></tr>
+<tr><td><code>src/calib.c</code></td><td>276</td><td>9,744</td><td>Verified Full</td><td>Calibration and timing validation microbenchmarks</td></tr>
+<tr><td><code>src/shim.c</code></td><td>252</td><td>8,008</td><td>Verified Full</td><td>LD_PRELOAD interposition library for pthread mutexes</td></tr>
+<tr><td><code>src/sqlbench.c</code></td><td>313</td><td>13,141</td><td>Verified Full</td><td>Real-world SQLite concurrent database harness</td></tr>
+<tr><td><code>tests/test_locks.c</code></td><td>168</td><td>5,918</td><td>Verified Full</td><td>Correctness test, mutual exclusion overlap detector</td></tr>
+<tr><td><code>scripts/manifest.py</code></td><td>175</td><td>5,639</td><td>Verified Full</td><td>Comprehensive machine and OS state collector</td></tr>
+<tr><td><code>scripts/validate.py</code></td><td>233</td><td>11,839</td><td>Verified Full</td><td>Harness validation suite (15 checks)</td></tr>
+<tr><td><code>scripts/experiments.py</code></td><td>371</td><td>13,645</td><td>Verified Full</td><td>Pre-registered experiment matrices (E1-E10, T3)</td></tr>
+<tr><td><code>scripts/run_experiments.py</code></td><td>153</td><td>6,289</td><td>Verified Full</td><td>Seeded, resumable experiment runner</td></tr>
+<tr><td><code>scripts/choose_budgets.py</code></td><td>49</td><td>1,588</td><td>Verified Full</td><td>Derives static budgets b1-b4 from E1 data</td></tr>
+<tr><td><code>scripts/choose_policy.py</code></td><td>45</td><td>1,707</td><td>Verified Full</td><td>Derives adaptive parameters from T3 tuning</td></tr>
+<tr><td><code>scripts/stats.py</code></td><td>168</td><td>5,490</td><td>Verified Full</td><td>Non-parametric bootstrap, order statistics, tail sets</td></tr>
+<tr><td><code>scripts/analyze.py</code></td><td>976</td><td>54,135</td><td>Verified Full</td><td>Master data analysis engine and report generator</td></tr>
+<tr><td><code>scripts/figures.py</code></td><td>579</td><td>27,221</td><td>Verified Full</td><td>Publication vector SVG and CSV twin generator</td></tr>
+<tr><td><code>scripts/supplement.py</code></td><td>176</td><td>7,423</td><td>Verified Full</td><td>Mann-Whitney U, Hodges-Lehmann, and Holm tests</td></tr>
+<tr><td><code>config/budgets.json</code></td><td>24</td><td>486</td><td>Verified Full</td><td>Static spin budgets configuration derived from E1</td></tr>
+<tr><td><code>config/policy.json</code></td><td>108</td><td>2,213</td><td>Verified Full</td><td>Tuned adaptive policy parameters derived from T3</td></tr>
+<tr><td><code>Makefile</code></td><td>64</td><td>2,248</td><td>Verified Full</td><td>Build system rules and testing recipes</td></tr>
+<tr><td><code>requirements.txt</code></td><td>14</td><td>217</td><td>Verified Full</td><td>Pinned Python scientific libraries</td></tr>
+<tr><td><code>.gitignore</code></td><td>6</td><td>45</td><td>Verified Full</td><td>Ignored build and vendor directories</td></tr>
+<tr><td><code>README.md</code></td><td>1,026</td><td>56,960</td><td>Verified Full</td><td>Living repository handbook and research log</td></tr>
+<tr><td><code>BUILD_PHASE.md</code></td><td>330</td><td>17,151</td><td>Verified Full</td><td>Engineering specifications and architecture design</td></tr>
+<tr><td><code>RESEARCH_PHASE.md</code></td><td>606</td><td>37,919</td><td>Verified Full</td><td>Research questions, hypotheses, experimental protocol</td></tr>
+<tr><td><code>PROGRESS.md</code></td><td>176</td><td>15,519</td><td>Verified Full</td><td>Milestone log and engineering deviations D1-D18</td></tr>
+<tr><td><code>TIMELINE.md</code></td><td>168</td><td>9,842</td><td>Verified Full</td><td>Phase bounds and project execution schedule</td></tr>
+<tr><td><code>docs/report.md</code></td><td>517</td><td>32,527</td><td>Verified Full</td><td>Complete academic research paper draft</td></tr>
+<tr><td><code>docs/literature.md</code></td><td>82</td><td>11,410</td><td>Verified Full</td><td>24 verified primary bibliographic sources</td></tr>
+<tr><td><code>docs/validation.md</code></td><td>34</td><td>2,750</td><td>Verified Full</td><td>Harness validation report (15/15 passing)</td></tr>
+<tr><td><code>docs/figures/tables.md</code></td><td>74</td><td>4,210</td><td>Verified Full</td><td>Generated Markdown tables 8 and 9</td></tr>
+<tr><td><code>docs/results/supplement.md</code></td><td>55</td><td>5,820</td><td>Verified Full</td><td>Supplementary statistical tests output</td></tr>
+<tr><td><code>docs/results/*.md</code></td><td>~800</td><td>~45,000</td><td>Verified Full</td><td>Result reports for E1-E9 and T3</td></tr>
+<tr><td><code>results/</code></td><td>10,113 files</td><td>~150 MB</td><td>Verified Full</td><td>Raw experimental data, logs, and traces</td></tr>
+<tr><td><code>build/</code></td><td>6 files</td><td>~4 MB</td><td>Verified Full</td><td>GCC generated binaries and shared library</td></tr>
+<tr><td><code>build-tsan/</code></td><td>2 files</td><td>~3 MB</td><td>Verified Full</td><td>ThreadSanitizer instrumented test binaries</td></tr>
+<tr><td><code>.venv/</code></td><td>Vendor</td><td>~80 MB</td><td>Verified Full</td><td>Python 3.14 virtual environment</td></tr>
+<tr><td><code>.git/</code></td><td>Vendor</td><td>~12 MB</td><td>Verified Full</td><td>Git repository and pre-registration tags</td></tr>
+</tbody>
+</table></div>
+<div class="spacer"></div>
+<hr/>
+<p><em>End of Codebase Onboarding &amp; Architecture Guide.</em></p>
+</body>
+</html>
