@@ -1,3 +1,5 @@
+*Original plan, written before the experiments were run. For the current status, see the project README and docs/PROGRESS.md.*
+
 # BUILD_PHASE.md
 
 **Project:** *When Should a Thread Wait? An Experimental Study of Linux Futex-Based Synchronization Under Changing Contention*

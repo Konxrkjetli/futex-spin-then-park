@@ -112,6 +112,7 @@ Live tracker for the one-night plan in `TIMELINE.md`. Update after each task. Ti
 | D21 | Figure 2 uses the pre-registered best-static rule (1% ties → lower p99); README §11.5 counts plain highest-throughput cells | Consistency with H2/H3 definitions; both counts reported | 2026-10-16 23:10 |
 | D22 | Related work in the report is a skeleton: bibliographic details verified, no content claims until the team reads each source | Integrity rule, RESEARCH_PHASE §4 | 2026-10-16 23:14 |
 | D10 | Pilot data seen before pre-registration (validation and smoke tests) | Needed to validate the harness; disclosed in README §10.5. Thresholds in TIMELINE §5 predate it | 2026-10-14 22:05 |
+| D23 | Documentation reorganised; the 11 `results/*-console.log` files moved to `results/logs/` (`git mv`, contents untouched). **One-time exception to the append-only rule for raw data** (a rename only; nothing in scripts, Makefile or docs read these paths) | Clean repository root for GitHub | 2026-10-17 21:40 |
 
 ## Log
 

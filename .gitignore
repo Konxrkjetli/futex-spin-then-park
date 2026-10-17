@@ -3,3 +3,4 @@ build-tsan/
 __pycache__/
 *.pyc
 .venv/
+docs/explanation/PROJECT_EXPLANATION.html

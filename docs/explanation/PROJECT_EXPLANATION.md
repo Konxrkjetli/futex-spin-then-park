@@ -60,7 +60,7 @@
      - [`Makefile`](#makefile)
      - [`requirements.txt`](#requirementstxt)
      - [`.gitignore`](#gitignore)
-     - [`README.md`, `BUILD_PHASE.md`, `RESEARCH_PHASE.md`, `PROGRESS.md`, `TIMELINE.md`](#project-lifecycle-and-planning-markdowns)
+     - [`README.md`, `docs/plan/BUILD_PHASE.md`, `docs/plan/RESEARCH_PHASE.md`, `docs/PROGRESS.md`, `docs/plan/TIMELINE.md`](#project-lifecycle-and-planning-markdowns)
    - [4.7 Documentation & Research Findings (`docs/`)](#47-documentation--research-findings-docs)
      - [`docs/report.md`](#docsreportmd)
      - [`docs/literature.md`](#docsliteraturemd)
@@ -234,14 +234,10 @@ python3 scripts/analyze.py all        # Generates docs/results/*.md and results/
 
 ### 3.1 Visual Directory Tree
 ```
-/home/jetly/Documents/OS PROJECT/
+/path/to/project/
 ├── .gitignore                      # Git ignored build targets and venvs
 ├── Makefile                        # Master compilation and testing recipes
 ├── README.md                       # High-level project record, findings and quickstart
-├── BUILD_PHASE.md                  # Architectural specification and engineering design doc
-├── RESEARCH_PHASE.md               # Research questions, pre-registered hypotheses & protocol
-├── PROGRESS.md                     # Timestamped project execution tracker and deviation log
-├── TIMELINE.md                     # Four-phase execution plan and scope bounds
 ├── requirements.txt                # Pinned Python dependencies for plotting and statistics
 ├── config/
 │   ├── budgets.json                # Static spin budgets derived from Experiment E1
@@ -284,24 +280,33 @@ python3 scripts/analyze.py all        # Generates docs/results/*.md and results/
 │   ├── figures.py                  # Publication SVG vector figures and CSV data twins generator
 │   └── supplement.py               # Mann-Whitney U, Hodges-Lehmann, and Holm p-value tests
 ├── docs/
+│   ├── PROGRESS.md                 # Timestamped project execution tracker and deviation log
+│   ├── README.md                   # Index of the documentation folder
+│   ├── plan/
+│   │   ├── BUILD_PHASE.md          # Architectural specification and engineering design doc
+│   │   ├── RESEARCH_PHASE.md       # Research questions, pre-registered hypotheses & protocol
+│   │   └── TIMELINE.md             # Four-phase execution plan and scope bounds
+│   ├── explanation/
+│   │   ├── PROJECT_EXPLANATION.md  # This walkthrough
+│   │   └── PROJECT_EXPLANATION.pdf # Rendered PDF (built by scripts/generate_pdf.py)
 │   ├── literature.md               # Verified bibliographic details of 24 candidate papers
 │   ├── report.md                   # Complete academic research paper draft
 │   ├── validation.md               # Generated harness validation report
 │   ├── figures/                    # Output visual artifacts (Figures 1-7, 10, Tables 8-9)
 │   └── results/                    # Generated markdown result summaries per experiment (E1-E9, T3)
-├── results/                        # Raw experimental data store (JSONL, CSV, JSON, logs)
+├── results/                        # Raw experimental data store (JSONL, CSV, JSON; console logs in results/logs/)
 ├── build/                          # Compiled binary outputs (ignored by git)
 ├── build-tsan/                     # ThreadSanitizer instrumented binaries (ignored by git)
 └── .venv/                          # Python virtual environment (ignored by git)
 ```
 
 ### 3.2 Directory Responsibilities & Functional Categorization
-- **`/` (Project Root):** Contains foundational governance and research documentation (`RESEARCH_PHASE.md`, `BUILD_PHASE.md`, `README.md`), tracking records (`PROGRESS.md`, `TIMELINE.md`), root compilation instructions (`Makefile`), and dependency definitions (`requirements.txt`).
+- **`/` (Project Root):** Contains the project handbook (`README.md`), root compilation instructions (`Makefile`), and dependency definitions (`requirements.txt`).
 - **`src/`:** The entire C codebase. Houses lock primitive implementations, hardware abstraction layers (TSC, CPU topology, cgroups), memory allocation wrappers, latency histogram data structures, microbenchmarks, and dynamic link shims.
 - **`tests/`:** Verification and correctness code. Contains the stress testing harness that checks mutual exclusion, lost wakeups, and data races across all locks.
 - **`config/`:** Frozen configuration artifacts in JSON format. Stores the static spin budgets derived from Experiment E1 and the tuned hyperparameters chosen from Session T3.
 - **`scripts/`:** Python automation suite. Orchestrates experiment execution, collects hardware telemetry, computes statistical bounds, performs non-parametric hypothesis testing, and renders publication-ready plots.
-- **`docs/`:** Knowledge base and generated deliverables. Contains literature reviews, paper drafts, validation audits, generated result tables, and SVG figures.
+- **`docs/`:** Knowledge base and generated deliverables. Contains the planning documents (`docs/plan/`), the progress tracker (`docs/PROGRESS.md`), this walkthrough (`docs/explanation/`), literature reviews, paper drafts, validation audits, generated result tables, and SVG figures.
 - **`results/`:** Immutable data warehouse. Stores raw machine telemetry, JSONL execution streams, gzip-compressed latency traces, and windowed throughput CSV files.
 
 ### 3.3 File Manifest & Inter-File Relationship Matrix
@@ -715,14 +720,14 @@ python3 scripts/analyze.py all        # Generates docs/results/*.md and results/
 - Pins Python dependencies for extended analysis: `matplotlib==3.11.2`, `scipy==1.18.1`, `numpy==2.5.4`, `pandas==3.0.6`, `contourpy`, `fonttools`, `kiwisolver`.
 
 #### `.gitignore`
-- Excludes compilation binaries (`build/`, `build-tsan/`), Python caches (`__pycache__/`, `*.pyc`), and local virtual environments (`.venv/`).
+- Excludes compilation binaries (`build/`, `build-tsan/`), Python caches (`__pycache__/`, `*.pyc`), local virtual environments (`.venv/`), and the generated `docs/explanation/PROJECT_EXPLANATION.html`.
 
 #### Project Lifecycle and Planning Markdowns
 - `README.md`: The living project handbook.
-- `BUILD_PHASE.md`: Detailed engineering architecture, lock design, and validation requirements.
-- `RESEARCH_PHASE.md`: Research questions, mathematical definitions, pre-registered hypothesis criteria, and related literature catalog.
-- `PROGRESS.md`: Timestamped log tracking every execution milestone and recording engineering deviations (D1 through D18).
-- `TIMELINE.md`: Project schedule and original phase scope definitions.
+- `docs/plan/BUILD_PHASE.md`: Detailed engineering architecture, lock design, and validation requirements.
+- `docs/plan/RESEARCH_PHASE.md`: Research questions, mathematical definitions, pre-registered hypothesis criteria, and related literature catalog.
+- `docs/PROGRESS.md`: Timestamped log tracking every execution milestone and recording engineering deviations (D1 through D18).
+- `docs/plan/TIMELINE.md`: Project schedule and original phase scope definitions.
 
 ---
 
@@ -974,10 +979,10 @@ To verify that **every single file in the repository** was thoroughly opened, re
 | `requirements.txt` | 14 | 217 | Verified Full | Pinned Python scientific libraries |
 | `.gitignore` | 6 | 45 | Verified Full | Ignored build and vendor directories |
 | `README.md` | 1,026 | 56,960 | Verified Full | Living repository handbook and research log |
-| `BUILD_PHASE.md` | 330 | 17,151 | Verified Full | Engineering specifications and architecture design |
-| `RESEARCH_PHASE.md` | 606 | 37,919 | Verified Full | Research questions, hypotheses, experimental protocol |
-| `PROGRESS.md` | 176 | 15,519 | Verified Full | Milestone log and engineering deviations D1-D18 |
-| `TIMELINE.md` | 168 | 9,842 | Verified Full | Phase bounds and project execution schedule |
+| `docs/plan/BUILD_PHASE.md` | 330 | 17,151 | Verified Full | Engineering specifications and architecture design |
+| `docs/plan/RESEARCH_PHASE.md` | 606 | 37,919 | Verified Full | Research questions, hypotheses, experimental protocol |
+| `docs/PROGRESS.md` | 176 | 15,519 | Verified Full | Milestone log and engineering deviations D1-D18 |
+| `docs/plan/TIMELINE.md` | 168 | 9,842 | Verified Full | Phase bounds and project execution schedule |
 | `docs/report.md` | 517 | 32,527 | Verified Full | Complete academic research paper draft |
 | `docs/literature.md` | 82 | 11,410 | Verified Full | 24 verified primary bibliographic sources |
 | `docs/validation.md` | 34 | 2,750 | Verified Full | Harness validation report (15/15 passing) |

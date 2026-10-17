@@ -9,9 +9,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MD_PATH = ROOT / "PROJECT_EXPLANATION.md"
-HTML_PATH = ROOT / "PROJECT_EXPLANATION.html"
-PDF_PATH = ROOT / "PROJECT_EXPLANATION.pdf"
+MD_PATH = ROOT / "docs" / "explanation" / "PROJECT_EXPLANATION.md"
+HTML_PATH = ROOT / "docs" / "explanation" / "PROJECT_EXPLANATION.html"
+PDF_PATH = ROOT / "docs" / "explanation" / "PROJECT_EXPLANATION.pdf"
 
 
 def md_to_html(md_text):

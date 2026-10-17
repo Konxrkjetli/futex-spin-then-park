@@ -30,7 +30,7 @@ is updated at the end of every phase.
 | 3. Adaptive locks + throttling (RQ3, H3, H4) | 03:30 – 06:30 (run 15 Oct 21:52 – 16 Oct 00:09) | **Done**, awaiting review. H3 partially supported (A 1/6, B 3/6), H4 partially supported (2/4) |
 | 4. Analysis + write-up | 06:30 – 09:30 (run 16 Oct 22:51 – 23:18) | **Done**, awaiting review. Report draft `docs/report.md`; figures 1–10; data frozen at tag `data-freeze-v1` |
 
-Detailed checklist and event log: [`PROGRESS.md`](PROGRESS.md). Plan: [`TIMELINE.md`](TIMELINE.md).
+Detailed checklist and event log: [`docs/PROGRESS.md`](docs/PROGRESS.md). Plan: [`docs/plan/TIMELINE.md`](docs/plan/TIMELINE.md).
 
 ---
 
@@ -415,7 +415,7 @@ experiment matrix and verdict rules were written into `RESEARCH_PHASE.md`
 
 ```bash
 git show prereg-v1          # the frozen version
-git diff prereg-v1 -- RESEARCH_PHASE.md   # anything changed since (must be logged)
+git show prereg-v1:RESEARCH_PHASE.md | diff - docs/plan/RESEARCH_PHASE.md   # anything changed since (must be logged; the file moved to docs/plan/ after the tag)
 ```
 
 What is frozen, in short:

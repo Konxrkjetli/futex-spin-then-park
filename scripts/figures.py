@@ -546,7 +546,7 @@ def tables():
         md.append(f"| {l} | " + " | ".join(cells) + " |")
     md += ["", "Cell: Jain's index (1 = equal shares) and, in brackets, the starved-run count.", "",
            "## Table 9. Hypothesis summary (confirmatory; RESEARCH_PHASE.md §3.4)", ""]
-    text = (ROOT / "RESEARCH_PHASE.md").read_text()
+    text = (ROOT / "docs" / "plan" / "RESEARCH_PHASE.md").read_text()
     sec = text[text.index("| Hypothesis | Threshold | Observed result | Verdict |"):]
     md += sec[:sec.index("\n\n")].splitlines()
     (OUT / "tables.md").write_text("\n".join(md) + "\n")

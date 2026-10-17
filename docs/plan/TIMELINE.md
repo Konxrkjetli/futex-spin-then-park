@@ -1,3 +1,5 @@
+*Original plan, written before the experiments were run. For the current status, see the project README and docs/PROGRESS.md.*
+
 # TIMELINE.md: one-night build and research plan
 
 **Start:** 2026-10-14 ~22:00 IST | **Target finish:** 2026-10-15 ~09:30 IST | **Machine:** Ryzen 7 6800H (8C/16T, 1 socket, 1 NUMA node, one shared L3), kernel 7.2.5-3-omarchy, glibc 2.44
